@@ -1,8 +1,8 @@
 /*
 #####################################################################################
 #								In the name of ALLAH 								#
-# Project : STM32F407 Test Project													#
-# Date : 2013/11/18																	#
+# Project : Direct to Phone															#
+# Date : 2015/06/04																	#
 # file : Main.c 																	#
 #																					#
 #####################################################################################
@@ -14,12 +14,16 @@
 //#include "Ethernet\ETH_STM32F4xx.h"
 #include "stdio.h"
 #include "RTL.h"
-
-
+#include "GeneralDefines.h" 
+ 
+/******************************************************************************************************/
+//Global Defines
 #define NUM_RX_BUF          4           /* 0x1800 for Rx (4*1536=6K)         */
 #define NUM_TX_BUF          2           /* 0x0600 for Tx (2*1536=3K)         */
 #define ETH_BUF_SIZE        1536        /* ETH Receive/Transmit buffer size  */
 
+/******************************************************************************************************/
+//Global Variables
 
 uint32 i,j,k,l;
 uint8 *TempLoc		__attribute__((at(0x8000000 + 0x4000)));
@@ -30,8 +34,8 @@ uint8 udp_soc;
 uint16 TCPRxTcpDataCount;
 uint8 *TCPRxDataPtr;
 boolean DataReceivedFlag;
-/******************************************************************************************************/
 
+/******************************************************************************************************/
 uint16 tcp_callback (uint8 soc, uint8 event, uint8 *ptr, uint16 par) {
 	/* This function is called on TCP event */
 
@@ -78,26 +82,6 @@ U16 udp_callback (U8 socket, U8 *remip, U16 remport, U8 *buf, U16 len) {
    
   return (0);
 }
-
-/******************************************************************************************************/
-
-typedef struct {
-  uint32 volatile Stat;
-  uint32 Ctrl;
-  uint32 Addr;
-  uint32 Next;
-} RX_Desc;
-
-typedef struct {
-  uint32 volatile CtrlStat;
-  uint32 Size;
-  uint32 Addr;
-  uint32 Next;
-} TX_Desc;
-
-
-extern RX_Desc Rx_Desc[NUM_RX_BUF];
-extern TX_Desc Tx_Desc[NUM_TX_BUF];
 
 
 /******************************************************************************************************/
@@ -186,7 +170,7 @@ void UartTransmmit(uint8 *Data, uint32 Size, uint8 Channel){
 
 void send_data (uint8 Char) {
 	uint8 udp_msg;
-	uint8 remip[4] = {192,168,1,3};
+	uint8 remip[4] = {192,168,1,6};
 	uint8 *sendbuf;
 	uint16 len=5;
 
@@ -214,9 +198,10 @@ int main(){
 // 	DmaEnable(DMA2_Stream7, True);
 	
 	
+	
 	//printf("\n*** In The Name of ALLAH ***");
+	
 	init_TcpNet();
-		
 	udp_soc = udp_get_socket(0, UDP_OPT_SEND_CS | UDP_OPT_CHK_CS, udp_callback);
 	if (udp_soc != 0) {
 		/* Open UDP port 1000 for communication */
@@ -230,7 +215,11 @@ int main(){
 		tcp_listen (tcp_soc, 2000);
 	}
 	
-	printf("\n*** In The Name of ALLAH ***");
+	delay(5000);
+	//printf("\n*** In The Name of ALLAH ***");
+	SystemConfiguration();
+	printf("\nSystem Configuration Done");
+	printf("\nSystem Startup");
 	
 	//FlashOptionByteCRLock(False);
  	while(1){

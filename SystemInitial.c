@@ -307,7 +307,7 @@
 //			<q0.0> TIM1 clock enable (TIM1EN)
 //		</h>
 
-#define RCC_APB2ENR_VALUE		0x00004010
+#define RCC_APB2ENR_VALUE		0x00005010
 
 //		<h> RCC AHB1 Peripheral Clock Enable in Low Power Mode Register (RCC_AHB1LPENR)
 //			<q0.30> USB OTG HS ULPI clock enable during Sleep mode (OTGHSULPILPEN)
@@ -528,7 +528,7 @@
 //				<3=> Analog Mode
 //		</h> GPIO PORTA
 
-#define GPIOA_MODER_VALUE	0x280280AA
+#define GPIOA_MODER_VALUE	0xA80280AA
 
 //		<h> GPIO PORTB
 //			<o0.0..1> PORT0
@@ -613,7 +613,7 @@
 //				<3=> Analog Mode
 //		</h> GPIO PORTB
 
-#define GPIOB_MODER_VALUE	0x0AA2208A
+#define GPIOB_MODER_VALUE	0x0AA22A8A
 
 //		<h> GPIO PORTC
 //			<o0.0..1> PORT0
@@ -868,7 +868,7 @@
 //				<3=> Analog Mode
 //		</h> GPIO PORTE
 
-#define GPIOE_MODER_VALUE	0x00004000
+#define GPIOE_MODER_VALUE	0x01404000
 
 //		<h> GPIO PORTF
 //			<o0.0..1> PORT0
@@ -1830,7 +1830,7 @@
 //				<3=> High Speed
 //		</h> GPIO PORTB 
 
-#define GPIOB_OSPEEDR_VALUE	0x0AA2000A
+#define GPIOB_OSPEEDR_VALUE	0x0AA20A8A
 
 //		<h> GPIO PORTC 
 //			<o0.0..1> PORT0
@@ -3301,7 +3301,7 @@
 //				<15=> AF15 (EVENTOUT)
 //		</h>
 
-#define GPIOA_AFRH_VALUE	0x00000000
+#define GPIOA_AFRH_VALUE	0x50000000
 
 //		<h> GPIO PORTB
 //			<o0.0..3> PORT0
@@ -3442,7 +3442,7 @@
 //				<15=> AF15 (EVENTOUT)
 
 
-#define GPIOB_AFRL_VALUE	0x070000BB
+#define GPIOB_AFRL_VALUE	0x075550BB
 
 //			<o0.0..3> PORT8
 //				<0=> AF0 (IO)

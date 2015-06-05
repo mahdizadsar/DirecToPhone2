@@ -7521,6 +7521,10 @@
 //</h>
 
 //<h> Serial Peripheral Interface (SPI)
+// <h> SPI1
+//	<o2.11> I2S mode selection (I2SMOD)
+//		<0=> SPI mode
+//		<1=> I2S mode
 //	<e0.6> SPI Mode
 //		<h> SPI control register 1 (SPI_CR1)
 //			<o0.15> Bidirectional data mode enable (BIDIMODE)
@@ -7564,9 +7568,9 @@
 //				<0=> First edge Capture 
 //				<1=> Second edge Capture
 //		</h>
-//	</e>
 
-#define SPI_CR1_VALUE		0x00000000
+
+#define SPI1_CR1_VALUE		0x00000000
 
 //		<h> SPI control register 2 (SPI_CR2)
 //			<o0.7> Tx buffer empty interrupt enable (TXEIE)
@@ -7579,13 +7583,11 @@
 //			<o0.1> Tx buffer DMA enable (TXDMAEN)
 //			<o0.0> Rx buffer DMA enable (RXDMAEN)
 //		</h>
+//	</e>
+#define SPI1_CR2_VALUE		0x00000000
 
-#define SPI_CR2_VALUE		0x00000000
-
-//		<e0.10> SPI_I2S configuration register (SPI_I2SCFGR)
-//			<o0.11> I2S mode selection (I2SMOD)
-//				<0=> SPI mode
-//				<1=> I2S mode
+//	<e0.10> I2S Mode
+//		<h> SPI_I2S configuration register (SPI_I2SCFGR)
 //			<o0.8..9> I2S configuration mode (I2SCFG)
 //				<0=> Slave - transmit
 //				<1=> Slave - receive
@@ -7606,24 +7608,239 @@
 //				<0=> 16-bit
 //				<1=> 24-bit
 //				<2=> 32-bit
-//			<o0.0> Channel length (number of bits per audio channel) (CHLEN)
+//			<o0.0> Channel length (number of bits per audio channel) (CHLEN) 
 //				<0=> 16-bit wide
 //				<1=> 32-bit wide
-//		</e>
+//		</h>
 
-#define SPI_I2SCFGR_VALUE		0x00000000
+#define SPI1_I2SCFGR_VALUE		0x00000000
 
 //		<h> SPI_I2S prescaler register (SPI_I2SPR)
 //			<o0.9> Master clock output enable (MCKOE)
 //			<o0.8> Odd factor for the prescaler (ODD)
 //				<0=> real divider value is = I2SDIV *2
 //				<1=> real divider value is = (I2SDIV * 2)+1
-//			<o0.0..7> I2S Linear prescaler (I2SDIV) <2-127>
+//			<o0.0..7> I2S Linear prescaler (I2SDIV)  <2-127> 
+//		</h>
+//	</e>
+
+#define SPI1_I2SPR_VALUE		0x00000002
+
+// </h> SPI1
+
+// <h> SPI2
+//	<o2.11> I2S mode selection (I2SMOD)
+//		<0=> SPI mode
+//		<1=> I2S mode
+//	<e0.6> SPI Mode
+//		<h> SPI control register 1 (SPI_CR1)
+//			<o0.15> Bidirectional data mode enable (BIDIMODE)
+//				<0=> 2-line unidirectional
+//				<1=> 1-line bidirectional
+//			<o0.14> Output enable in bidirectional mode (BIDIOE)
+//				<0=> Output disabled (receive-only mode)
+//				<1=> Output enabled (transmit-only mode)
+//			<o0.13> Hardware CRC calculation enable (CRCEN)
+//			<o0.12> CRC transfer next (CRCNEXT)
+//				<0=> Data phase (no CRC phase)
+//				<1=> Next transfer is CRC (CRC phase)
+//			<o0.11> Data frame format(DFF)
+//				<0=> 8-bit 
+//				<1=> 16-bit
+//			<o0.10> Receive only (RXONLY)
+//				<0=> Full duplex (Transmit and receive)
+//				<1=> Output disabled (Receive-only mode)
+//			<o0.9> Software slave management (SSM)
+//				<0=> Software slave management disabled
+//				<1=> Software slave management enabled
+//			<o0.7>Frame format (LSBFIRST)
+//				<0=> MSB transmitted first
+//				<1=> LSB transmitted first
+//			<o0.3..5> Baud rate control (BR[2:0])
+//				<0=>Fpclk/2
+//				<1=>Fpclk/4
+//				<2=>Fpclk/8
+//				<3=>Fpclk/16
+//				<4=>Fpclk/32 
+//				<5=>Fpclk/64
+//				<6=>Fpclk/128
+//				<7=>Fpclk/256
+//			<o0.2> Master selection (MSTR)
+//				<0=> Slave
+//				<1=> Master
+//			<o0.1> Clock polarity (CPOL)
+//				<0=> CK to 0 when idle
+//				<1=> CK to 1 when idle
+//			<o0.0> Clock phase (CPHA)
+//				<0=> First edge Capture 
+//				<1=> Second edge Capture
 //		</h>
 
-#define SPI_I2SPR_VALUE		0x00000002
+
+#define SPI2_CR1_VALUE		0x00000000
+
+//		<h> SPI control register 2 (SPI_CR2)
+//			<o0.7> Tx buffer empty interrupt enable (TXEIE)
+//			<o0.6> RX buffer not empty interrupt enable (RXNEIE)
+//			<o0.5> Error interrupt enable (ERRIE)
+//			<o0.4> Frame format (FRF)
+//				<0=> SPI Motorola mode
+//				<1=> SPI TI mode
+//			<o0.2> SS output enable (SSOE)
+//			<o0.1> Tx buffer DMA enable (TXDMAEN)
+//			<o0.0> Rx buffer DMA enable (RXDMAEN)
+//		</h>
+//	</e>
+#define SPI2_CR2_VALUE		0x00000000
+
+//	<e0.10> I2S Mode
+//		<h> SPI_I2S configuration register (SPI_I2SCFGR)
+//			<o0.8..9> I2S configuration mode (I2SCFG)
+//				<0=> Slave - transmit
+//				<1=> Slave - receive
+//				<2=> Master - transmit
+//				<3=> Master - receive
+//			<o0.7> PCM frame synchronization (PCMSYNC)
+//				<0=> Short frame synch
+//				<1=> Long frame synch
+//			<o0.4..5> I2S standard selection (I2SSTD)
+//				<0=> I2S Philips standard.
+//				<1=> MSB justified standard (left justified)
+//				<2=> LSB justified standard (right justified)
+//				<3=> PCM standard
+//			<o0.3> Steady state clock polarity (CKPOL)
+//				<0=> CK to 0 when idle
+//				<1=> CK to 1 when idle
+//			<o0.1..2> Data length to be transferred (DATLEN)
+//				<0=> 16-bit
+//				<1=> 24-bit
+//				<2=> 32-bit
+//			<o0.0> Channel length (number of bits per audio channel) (CHLEN) 
+//				<0=> 16-bit wide
+//				<1=> 32-bit wide
+//		</h>
+
+#define SPI2_I2SCFGR_VALUE		0x00000000
+
+//		<h> SPI_I2S prescaler register (SPI_I2SPR)
+//			<o0.9> Master clock output enable (MCKOE)
+//			<o0.8> Odd factor for the prescaler (ODD)
+//				<0=> real divider value is = I2SDIV *2
+//				<1=> real divider value is = (I2SDIV * 2)+1
+//			<o0.0..7> I2S Linear prescaler (I2SDIV)  <2-127> 
+//		</h>
+//	</e>
+
+#define SPI2_I2SPR_VALUE		0x00000002
+
+// </h> SPI2
+
+// <h> SPI3
+//	<o2.11> I2S mode selection (I2SMOD)
+//		<0=> SPI mode
+//		<1=> I2S mode
+//	<e0.6> SPI Mode
+//		<h> SPI control register 1 (SPI_CR1)
+//			<o0.15> Bidirectional data mode enable (BIDIMODE)
+//				<0=> 2-line unidirectional
+//				<1=> 1-line bidirectional
+//			<o0.14> Output enable in bidirectional mode (BIDIOE)
+//				<0=> Output disabled (receive-only mode)
+//				<1=> Output enabled (transmit-only mode)
+//			<o0.13> Hardware CRC calculation enable (CRCEN)
+//			<o0.12> CRC transfer next (CRCNEXT)
+//				<0=> Data phase (no CRC phase)
+//				<1=> Next transfer is CRC (CRC phase)
+//			<o0.11> Data frame format(DFF)
+//				<0=> 8-bit 
+//				<1=> 16-bit
+//			<o0.10> Receive only (RXONLY)
+//				<0=> Full duplex (Transmit and receive)
+//				<1=> Output disabled (Receive-only mode)
+//			<o0.9> Software slave management (SSM)
+//				<0=> Software slave management disabled
+//				<1=> Software slave management enabled
+//			<o0.7>Frame format (LSBFIRST)
+//				<0=> MSB transmitted first
+//				<1=> LSB transmitted first
+//			<o0.3..5> Baud rate control (BR[2:0])
+//				<0=>Fpclk/2
+//				<1=>Fpclk/4
+//				<2=>Fpclk/8
+//				<3=>Fpclk/16
+//				<4=>Fpclk/32 
+//				<5=>Fpclk/64
+//				<6=>Fpclk/128
+//				<7=>Fpclk/256
+//			<o0.2> Master selection (MSTR)
+//				<0=> Slave
+//				<1=> Master
+//			<o0.1> Clock polarity (CPOL)
+//				<0=> CK to 0 when idle
+//				<1=> CK to 1 when idle
+//			<o0.0> Clock phase (CPHA)
+//				<0=> First edge Capture 
+//				<1=> Second edge Capture
+//		</h>
 
 
+#define SPI3_CR1_VALUE		0x00000000
+
+//		<h> SPI control register 2 (SPI_CR2)
+//			<o0.7> Tx buffer empty interrupt enable (TXEIE)
+//			<o0.6> RX buffer not empty interrupt enable (RXNEIE)
+//			<o0.5> Error interrupt enable (ERRIE)
+//			<o0.4> Frame format (FRF)
+//				<0=> SPI Motorola mode
+//				<1=> SPI TI mode
+//			<o0.2> SS output enable (SSOE)
+//			<o0.1> Tx buffer DMA enable (TXDMAEN)
+//			<o0.0> Rx buffer DMA enable (RXDMAEN)
+//		</h>
+//	</e>
+#define SPI3_CR2_VALUE		0x00000000
+
+//	<e0.10> I2S Mode
+//		<h> SPI_I2S configuration register (SPI_I2SCFGR)
+//			<o0.8..9> I2S configuration mode (I2SCFG)
+//				<0=> Slave - transmit
+//				<1=> Slave - receive
+//				<2=> Master - transmit
+//				<3=> Master - receive
+//			<o0.7> PCM frame synchronization (PCMSYNC)
+//				<0=> Short frame synch
+//				<1=> Long frame synch
+//			<o0.4..5> I2S standard selection (I2SSTD)
+//				<0=> I2S Philips standard.
+//				<1=> MSB justified standard (left justified)
+//				<2=> LSB justified standard (right justified)
+//				<3=> PCM standard
+//			<o0.3> Steady state clock polarity (CKPOL)
+//				<0=> CK to 0 when idle
+//				<1=> CK to 1 when idle
+//			<o0.1..2> Data length to be transferred (DATLEN)
+//				<0=> 16-bit
+//				<1=> 24-bit
+//				<2=> 32-bit
+//			<o0.0> Channel length (number of bits per audio channel) (CHLEN) 
+//				<0=> 16-bit wide
+//				<1=> 32-bit wide
+//		</h>
+
+#define SPI3_I2SCFGR_VALUE		0x00000000
+
+//		<h> SPI_I2S prescaler register (SPI_I2SPR)
+//			<o0.9> Master clock output enable (MCKOE)
+//			<o0.8> Odd factor for the prescaler (ODD)
+//				<0=> real divider value is = I2SDIV *2
+//				<1=> real divider value is = (I2SDIV * 2)+1
+//			<o0.0..7> I2S Linear prescaler (I2SDIV)  <2-127> 
+//		</h>
+//	</e>
+
+#define SPI3_I2SPR_VALUE		0x00000002
+
+// </h> SPI3
 //</h>
 
 /******************************************************************************************************/
@@ -7994,6 +8211,42 @@ void SystemInit(void){
 	DMA2_Stream7 -> CR = DMA2_S7CR_VALUE & 0xFFFFFFFE;
 	/*DMA stream 7 FIFO control register*/
 	DMA2_Stream7 -> FCR = DMA2_S7FCR_VALUE;
+	
+//------------------- SPI & I2S registers --------------------
+
+	/*SPI Control Register 1*/
+	SPI1 -> CR1 = SPI1_CR1_VALUE & 0xFFFFFFBF;
+	/*SPI control register 2*/
+	SPI1 -> CR2 = SPI1_CR2_VALUE;
+	/*SPI_I2S prescaler register*/	
+	SPI1 -> I2SPR = SPI1_I2SPR_VALUE;
+	/*SPI_I2S configuration register */
+	SPI1 -> I2SCFGR = SPI1_I2SCFGR_VALUE;
+	/*SPI Control Register 1*/
+	SPI1 -> CR1 |= SPI1_CR1_VALUE & 0x00000040;
+	
+	/*SPI Control Register 1*/
+	SPI2 -> CR1 = SPI2_CR1_VALUE & 0xFFFFFFBF;
+	/*SPI control register 2*/
+	SPI2 -> CR2 = SPI2_CR2_VALUE;
+	/*SPI_I2S prescaler register*/	
+	SPI2 -> I2SPR = SPI2_I2SPR_VALUE;
+	/*SPI_I2S configuration register */
+	SPI2 -> I2SCFGR = SPI2_I2SCFGR_VALUE;
+	/*SPI Control Register 1*/
+	SPI2 -> CR1 |= SPI2_CR1_VALUE & 0x00000040;
+	
+	/*SPI Control Register 1*/
+	SPI3 -> CR1 = SPI3_CR1_VALUE & 0xFFFFFFBF;
+	/*SPI control register 2*/
+	SPI3 -> CR2 = SPI3_CR2_VALUE;
+	/*SPI_I2S prescaler register*/	
+	SPI3 -> I2SPR = SPI3_I2SPR_VALUE;
+	/*SPI_I2S configuration register */
+	SPI3 -> I2SCFGR = SPI3_I2SCFGR_VALUE;
+	/*SPI Control Register 1*/
+	SPI3 -> CR1 |= SPI3_CR1_VALUE & 0x00000040;
+
 }
 
 /******************************************************************************************************/

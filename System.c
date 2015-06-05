@@ -35,10 +35,11 @@ void SetResetIO(GPIO_TypeDef *GpioPort, uint32 GpioPin, IOState Value){
 /******************************************************************************************************/
 void SystemConfiguration(void){
 //Set Serial Interface Si3056 in MODE 0 as Master 
-	SetResetIO(GPIOE, SI_M0 ,enmReset);
-	SetResetIO(GPIOE, SI_M1 ,enmReset);	
-	SetResetIO(GPIOE, SI_RESET ,enmReset);	
-	SetResetIO(GPIOE, SI_RESET ,enmSet);
+	SetResetIO(GPIOE, SI_M0, enmReset);
+	SetResetIO(GPIOE, SI_M1, enmReset);	
+	SetResetIO(GPIOE, SI_OFHK, enmSet);
+	SetResetIO(GPIOE, SI_RESET, enmReset);	
+	SetResetIO(GPIOE, SI_RESET, enmSet);
 }
 
 

@@ -30,7 +30,7 @@ uint8 *TempLoc		__attribute__((at(0x8000000 + 0x4000)));
 
 uint8 tcp_soc;
 uint8 udp_soc;
-
+uint16 DataRead;
 uint16 TCPRxTcpDataCount;
 uint8 *TCPRxDataPtr;
 boolean DataReceivedFlag;
@@ -187,6 +187,7 @@ void send_data (uint8 Char) {
 
 int main(){
 	uint16 maxlen;
+	
 	uint8 *sendbuf;
 	uint32 timer = 0;
  	uint8 Data[] = {"\n*** In The Name of ALLAH ***"};
@@ -215,11 +216,11 @@ int main(){
 		tcp_listen (tcp_soc, 2000);
 	}
 	
-	delay(5000);
+//	delay(5000);
 	//printf("\n*** In The Name of ALLAH ***");
 	SystemConfiguration();
-	printf("\nSystem Configuration Done");
-	printf("\nSystem Startup");
+//	printf("\nSystem Configuration Done");
+//	printf("\nSystem Startup");
 	
 	//FlashOptionByteCRLock(False);
  	while(1){
@@ -234,6 +235,9 @@ int main(){
 			timer = 0;
 			timer_tick();
 		}
+
+		if (SPI1 -> SR & SPI_SR_RXNE)
+			DataRead = SPI1 -> DR;
 		
 		if (DataReceivedFlag == True){
 			DataReceivedFlag = False;

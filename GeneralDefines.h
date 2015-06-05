@@ -29,6 +29,7 @@ typedef enum IOState {
 #define SI_FC			10
 #define SI_M1			11
 #define SI_M0			12
+#define SI_OFHK			13
 #define SI_RESET		14
 
 

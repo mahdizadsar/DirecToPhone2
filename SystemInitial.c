@@ -242,9 +242,9 @@
 //			<q0.0> IO port A clock enable (GPIOAEN)
 //		</h>
 
-#define RCC_AHB1ENR_VALUE		0x2E60010F
+#define RCC_AHB1ENR_VALUE		0x2E60011F
 
-//		<h> RCC AHB2 Peripheral Clock enable Register (RCC_AHB2ENR)
+//		<h> RCC AHB2 Peripheral Clock Enable Register (RCC_AHB2ENR)
 //			<q0.7> USB OTG FS clock enable (OTGFSEN)
 //			<q0.6> Random number generator clock enable (RNGEN)
 //			<q0.5> Hash modules clock enable (HASHEN)
@@ -868,7 +868,7 @@
 //				<3=> Analog Mode
 //		</h> GPIO PORTE
 
-#define GPIOE_MODER_VALUE	0x01404000
+#define GPIOE_MODER_VALUE	0x15504000
 
 //		<h> GPIO PORTF
 //			<o0.0..1> PORT0
@@ -7570,7 +7570,7 @@
 //		</h>
 
 
-#define SPI1_CR1_VALUE		0x00000000
+#define SPI1_CR1_VALUE		0x00000840
 
 //		<h> SPI control register 2 (SPI_CR2)
 //			<o0.7> Tx buffer empty interrupt enable (TXEIE)

@@ -24,7 +24,7 @@ uint8 *BufferPtr;
 
 /******************************************************************************************************/
 //Global Constant
-uint8 RemoteIp[4] = {192,168,1,3};
+uint8 RemoteIp[4] = {192,168,1,2};
 
 /******************************************************************************************************/
 //External Variables
@@ -101,19 +101,20 @@ void SI3056WriteRegister(uint8 RegisterNumber, uint8 Value){
 void SendVoiceToPhone(void){
 	static boolean BufferAllocated = True;
 	static uint16 i = 0;
-	
+	uint16 Temp;
 	
 	if (BufferAllocated == False){
-		BufferPtr = udp_get_buf (1000);	
+		BufferPtr = udp_get_buf (512);	
 	}
 			
 	while (!(SPI1 -> SR & SPI_SR_RXNE));
-	BufferPtr[i++] = SPI1 -> DR;
-	BufferPtr[i++] = SPI1 -> DR;
-	if (i == 1000){
-		BufferAllocated = False;
+	Temp = SPI1 -> DR;
+	BufferPtr[i++] = ((uint8*)&Temp)[0]; 
+	BufferPtr[i++] = ((uint8*)&Temp)[1];
+	if (i == 512){
 		i = 0;
-		udp_send (udp_soc, RemoteIp, UDPPORTNUMBER, BufferPtr, 1000);
+		BufferAllocated = False;
+		udp_send (udp_soc, RemoteIp, UDPPORTNUMBER, BufferPtr, 512);
 	}
 }
 

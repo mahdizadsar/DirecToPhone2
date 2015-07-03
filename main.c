@@ -35,6 +35,7 @@ uint16 TCPRxTcpDataCount;
 uint8 *TCPRxDataPtr;
 boolean DataReceivedFlag;
 uint8 UdpPacket[1000];
+enmDeviceState_t DeviceState;
 
 /******************************************************************************************************/
 uint16 tcp_callback (uint8 soc, uint8 event, uint8 *ptr, uint16 par) {
@@ -202,6 +203,7 @@ int main(){
 	uint8 *sendbuf;
 	uint32 timer = 0;
  	uint8 Data[] = {"\n*** In The Name of ALLAH ***"};
+	uint8 Reply[] = {'A'};
 // 	uint8 Data1[] = {"\nDMA USART1 TX Initialized....."};
 // 	uint32 *Memory = (uint32*)0x8000000;
 
@@ -256,8 +258,7 @@ int main(){
 	}
 	SetResetIO(GPIOE, SI_OFHK, enmSet);			//Go to ON-HOOK
 	
-	
-	
+
 	/*while(1){
 		while (!(SPI1 -> SR & SPI_SR_RXNE));
 		DataRead[0] = SPI1 -> DR;
@@ -288,25 +289,50 @@ int main(){
 			GPIOD -> ODR &= ~(1 << 14);
 		}
 		
-		if (Counter > 100000){
+		/*if (Counter > 100000){
 			Counter = 0;
 			SetResetIO(GPIOE, SI_OFHK, enmReset);
 			delay(2000);
 			SetResetIO(GPIOE, SI_OFHK, enmSet);
-		}
+		}*/
 		
+		
+		if (DeviceState == enmOffHook) {
+			
+		}
+			
 
 		if (DataReceivedFlag == True){
 			DataReceivedFlag = False;
-			switch(((uint16*)TCPRxDataPtr)[0]){
-				case 0x10:
+			switch(TCPRxDataPtr[0]){
+				case 0x00:
+					if (TCPRxTcpDataCount == 1)
+						SetResetIO(GPIOE, SI_OFHK, enmSet);			//Go to ON-HOOK
+					DeviceState = enmOnHook;
+					
 					if (tcp_check_send (tcp_soc)) {
-						sendbuf = tcp_get_buf (sizeof(Data));
-						memcpy (sendbuf, Data, sizeof(Data));
-						tcp_send (tcp_soc, sendbuf, sizeof(Data));
+						sendbuf = tcp_get_buf (sizeof(Reply));
+						memcpy (sendbuf, Reply, sizeof(Reply));
+						tcp_send (tcp_soc, sendbuf, sizeof(Reply));
+					}	
+					GPIOD -> ODR = 0x00;
+				break;
+					
+				case 0x01:
+					if (TCPRxTcpDataCount == 1)
+						SetResetIO(GPIOE, SI_OFHK, enmReset);		//Go to OFF-HOOK
+					DeviceState = enmOffHook;
+					
+					if (tcp_check_send (tcp_soc)) {
+						sendbuf = tcp_get_buf (sizeof(Reply));
+						memcpy (sendbuf, Reply, sizeof(Reply));
+						tcp_send (tcp_soc, sendbuf, sizeof(Reply));
 					}
 					GPIOD -> ODR = (1 << 12);
 				break;
+				
+//-------------------------------------------------------------------------------------------------					
+								
 				case 0x11:
 					printf("\n*** In The Name of ALLAH ***");
 					GPIOD -> ODR = (1 << 13);

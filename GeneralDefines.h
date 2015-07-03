@@ -16,6 +16,13 @@
 #define __GENERALDEFINES__
 
 /******************************************************************************************************/
+typedef enum enmDeviceState_t{
+	enmOnHook 	= 0,
+	enmOffHook 	= 1,
+	enmBusy		= 2
+} enmDeviceState_t;
+
+/******************************************************************************************************/
 //General Type Defines 
 typedef enum IOState {
 	enmReset = 0,

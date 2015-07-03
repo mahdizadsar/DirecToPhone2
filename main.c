@@ -298,6 +298,7 @@ int main(){
 		
 		
 		if (DeviceState == enmOffHook) {
+			SendVoiceToPhone();
 			
 		}
 			

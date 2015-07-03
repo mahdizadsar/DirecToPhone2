@@ -21,17 +21,25 @@ typedef enum IOState {
 	enmReset = 0,
 	enmSet	 = 1
 }IOState;	
-				
+		
+/******************************************************************************************************/
+//General Defines
+#define UDPPORTNUMBER				8000
+#define TCPPORTNUMBER				9000
 
 /******************************************************************************************************/
 //General Macros 
 
+//Port E
 #define SI_FC			10
 #define SI_M1			11
 #define SI_M0			12
 #define SI_OFHK			13
 #define SI_RESET		14
 
+//Port D
+#define HT9032_PWRDOWN	10
+#define HT9032_RING		11
 
 
 #endif 

@@ -286,7 +286,7 @@
 //			<q0.0> TIM2 clock enable (TIM2EN)
 //		</h>
 
-#define RCC_APB1ENR_VALUE		0x10000000
+#define RCC_APB1ENR_VALUE		0x10040000
 
 //		<h> RCC APB2 Peripheral Clock Enable Register (RCC_APB2ENR)
 //			<q0.21> SPI6 clock enable (SPI6EN)
@@ -783,7 +783,7 @@
 //				<3=> Analog Mode
 //		</h> GPIO PORTD
 
-#define GPIOD_MODER_VALUE	0x55000400
+#define GPIOD_MODER_VALUE	0x550A0400
 
 //		<h> GPIO PORTE
 //			<o0.0..1> PORT0
@@ -2000,7 +2000,7 @@
 //				<3=> High Speed
 //		</h> GPIO PORTD 
 
-#define GPIOD_OSPEEDR_VALUE	0x55000000
+#define GPIOD_OSPEEDR_VALUE	0x55020000
 
 //		<h> GPIO PORTE 
 //			<o0.0..1> PORT0
@@ -4146,7 +4146,7 @@
 //				<15=> AF15 (EVENTOUT)
 //		</h>
 
-#define GPIOD_AFRH_VALUE	0x00000000
+#define GPIOD_AFRH_VALUE	0x00000077
 
 
 //		<h> GPIO PORTE
@@ -5902,7 +5902,7 @@
 //		<i>-                           8×(2–OVER8)×USARTDIV
 //	</h>
 
-#define USART3_BRR_VALUE		0x00000000
+#define USART3_BRR_VALUE		0x00000145
 
 //	<h> Control register 1 (USART_CR1)
 //		<o0.15> Oversampling mode (OVER8)
@@ -5930,7 +5930,7 @@
 //			<1=> Mute Mode
 //	</h>
 
-#define USART3_CR1_VALUE		0x00000000
+#define USART3_CR1_VALUE		0x0000200C
 
 //	<h> Control Register 2 (USART_CR2)
 //		<q0.14> LIN mode enable (LINEN)
@@ -7570,7 +7570,7 @@
 //		</h>
 
 
-#define SPI1_CR1_VALUE		0x00000840
+#define SPI1_CR1_VALUE		0x0000085A
 
 //		<h> SPI control register 2 (SPI_CR2)
 //			<o0.7> Tx buffer empty interrupt enable (TXEIE)
@@ -8278,11 +8278,8 @@ void DmaEnable(	DMA_Stream_TypeDef *Dma, 			//Set DMA Stream Number Here
 		Dma -> CR &= 0xFFFFFFFE;
 }
 
-/******************************************************************************************************/
 
 
 
 
-
-
-// *** <<< Use Configuration Wizard in Context Menu >>> ***
+//------------- <<< end of configuration section >>> -----------------------

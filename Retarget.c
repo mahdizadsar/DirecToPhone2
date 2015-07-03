@@ -29,8 +29,8 @@ FILE __stdin;
 
 
 int fputc(int ch, FILE *f) {
-	//SER_PutChar((unsigned char)ch);
-	send_data((unsigned char)ch);
+	SER_PutChar((unsigned char)ch);
+	//send_data((unsigned char)ch);
 //	return (sendchar(ch));
 }
 

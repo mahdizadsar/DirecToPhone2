@@ -30,10 +30,11 @@ uint8 *TempLoc		__attribute__((at(0x8000000 + 0x4000)));
 
 uint8 tcp_soc;
 uint8 udp_soc;
-uint16 DataRead;
+uint16 DataRead[3],Data3;
 uint16 TCPRxTcpDataCount;
 uint8 *TCPRxDataPtr;
 boolean DataReceivedFlag;
+uint8 UdpPacket[1000];
 
 /******************************************************************************************************/
 uint16 tcp_callback (uint8 soc, uint8 event, uint8 *ptr, uint16 par) {
@@ -152,8 +153,8 @@ void LED2 (void){
 
 void SER_PutChar(uint8 Data){
 	
-		while(!(USART1 -> SR & USART_SR_TXE));
-		USART1 -> DR = Data; 
+		while(!(USART3 -> SR & USART_SR_TXE));
+		USART3 -> DR = Data; 
 	}
 
 
@@ -163,6 +164,15 @@ void UartTransmmit(uint8 *Data, uint32 Size, uint8 Channel){
 	for (i = 0 ; i < Size ; i++){
 		while(!(USART1 -> SR & USART_SR_TXE));
 		USART1 -> DR = Data[i]; 
+	}
+}
+
+/******************************************************************************************************/
+
+void UartTransmmit3(uint8 *Data, uint32 Size, uint8 Channel){
+	for (i = 0 ; i < Size ; i++){
+		while(!(USART3 -> SR & USART_SR_TXE));
+		USART3 -> DR = Data[i]; 
 	}
 }
 
@@ -186,15 +196,16 @@ void send_data (uint8 Char) {
 /******************************************************************************************************/
 
 int main(){
+	uint32 Counter = 0; 
 	uint16 maxlen;
-	
+	uint8 i;
 	uint8 *sendbuf;
 	uint32 timer = 0;
  	uint8 Data[] = {"\n*** In The Name of ALLAH ***"};
 // 	uint8 Data1[] = {"\nDMA USART1 TX Initialized....."};
 // 	uint32 *Memory = (uint32*)0x8000000;
 
-// 	UartTransmmit(Data, sizeof(Data), 0);
+// 	UartTransmmit3(Data, sizeof(Data), 0);
 // 	DmaConfig(DMA2_Stream7, (uint32)&(USART1 -> DR), (uint32)Data1 , 0 ,sizeof(Data1) - 1);
 // 	DmaEnable(DMA2_Stream7, True);
 	
@@ -206,39 +217,85 @@ int main(){
 	udp_soc = udp_get_socket(0, UDP_OPT_SEND_CS | UDP_OPT_CHK_CS, udp_callback);
 	if (udp_soc != 0) {
 		/* Open UDP port 1000 for communication */
-		udp_open (udp_soc, 1000);
+		udp_open (udp_soc, UDPPORTNUMBER);
 	}
 
   
 	tcp_soc = tcp_get_socket (TCP_TYPE_SERVER, 0, 30, tcp_callback);
 	if (tcp_soc != 0) {
 		/* Start listening on TCP port 2000 */
-		tcp_listen (tcp_soc, 2000);
+		tcp_listen (tcp_soc, TCPPORTNUMBER);
 	}
 	
+	
 //	delay(5000);
-	//printf("\n*** In The Name of ALLAH ***");
+	printf("\n*** In The Name of ALLAH ***");
 	SystemConfiguration();
 //	printf("\nSystem Configuration Done");
 //	printf("\nSystem Startup");
-	
+	delay(200);
 	//FlashOptionByteCRLock(False);
+
+	SI3056WriteRegister(8, 0x02);
+	SI3056WriteRegister(9, 0x13);
+	delay(200);
+	SI3056WriteRegister(6, 0x00);
+	SI3056WriteRegister(1, 0x28);
+	SI3056WriteRegister(20, 0xFF);
+	SI3056WriteRegister(21, 0xFF);
+	SI3056WriteRegister(5, 0x02);
+	
+	SI3056WriteRegister(7, 0x09);				//Set Codec to 16Kbps
+
+	
+	SetResetIO(GPIOE, SI_OFHK, enmReset);		//Go to OFF-HOOK
+	delay(500);
+	for (i = 1 ; i < 60 ; i++){	
+		printf("\nSi3056 Register%02d: %02X", i , SI3056ReadRegister(i));
+		delay(1);
+	}
+	SetResetIO(GPIOE, SI_OFHK, enmSet);			//Go to ON-HOOK
+	
+	
+	
+	/*while(1){
+		while (!(SPI1 -> SR & SPI_SR_RXNE));
+		DataRead[0] = SPI1 -> DR;
+		printf("\nDataRead:%04X",DataRead[0]);
+		delay(1);
+	}*/
+
+	GPIOE -> MODER &= ~(3 << 22);
+	
  	while(1){
  		/*if ((Rx_Desc[0].Stat & 0x80000000) == 0){
 			for (i = 0 ; i < ((Rx_Desc[0].Stat >> 16) & 0x3FFF) ; i++)
 				printf("%04X" , ((uint8*)(Rx_Desc[0].Addr))[i]);
 		}*/
 		main_TcpNet();
+		//SendHelloWorld();
 		
 		timer++;
 		if (timer == 35000){
 			timer = 0;
 			timer_tick();
 		}
-
-		if (SPI1 -> SR & SPI_SR_RXNE)
-			DataRead = SPI1 -> DR;
+		if (!(GPIOE -> IDR & (1 << 11))){
+			GPIOD -> ODR =  (1 << 14);
+			Counter++;
+		}
+		else{
+			GPIOD -> ODR &= ~(1 << 14);
+		}
 		
+		if (Counter > 100000){
+			Counter = 0;
+			SetResetIO(GPIOE, SI_OFHK, enmReset);
+			delay(2000);
+			SetResetIO(GPIOE, SI_OFHK, enmSet);
+		}
+		
+
 		if (DataReceivedFlag == True){
 			DataReceivedFlag = False;
 			switch(((uint16*)TCPRxDataPtr)[0]){
@@ -265,8 +322,6 @@ int main(){
 	}
 	//LED1();
 }
-
-/******************************************************************************************************/
 
 
 

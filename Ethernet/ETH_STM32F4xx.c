@@ -12,7 +12,12 @@
 #include <Net_Config.h>
 #include <stm32f4xx.h>                  /* STM32F4xx Definitions              */
 #include "ETH_STM32F4xx.h"
-
+#include "stdio.h"
+#define  PrintDebug(...) {\
+						USART3 -> BRR = 0x00000145;\
+						printf(__VA_ARGS__);\
+						USART3 -> BRR = 0x00007A12;\
+						}
 /* The following macro definitions may be used to select the speed
    of the physical link:
 
@@ -219,11 +224,11 @@ void init_ethernet (void) {
   /* HCLK Clock range 100-120MHz. */
   ETH->MACMIIAR = 0x00000004;
 
-  printf("\nPHY Reg 01 BMSR: %04X", read_PHY(1));
-  printf("\nPHY Reg 02 IDR1: %04X", read_PHY(PHY_REG_IDR1));
-  printf("\nPHY Reg 03 IDR2: %04X", read_PHY(PHY_REG_IDR2));
-  printf("\nPHY Reg 16 DSCR: %04X", read_PHY(16));
-  printf("\nPHY Reg 24 RLSR: %04X", read_PHY(24));
+  PrintDebug("\nPHY Reg 01 BMSR: %04X", read_PHY(1));
+  PrintDebug("\nPHY Reg 02 IDR1: %04X", read_PHY(PHY_REG_IDR1));
+  PrintDebug("\nPHY Reg 03 IDR2: %04X", read_PHY(PHY_REG_IDR2));
+  PrintDebug("\nPHY Reg 16 DSCR: %04X", read_PHY(16));
+  PrintDebug("\nPHY Reg 24 RLSR: %04X", read_PHY(24));
   
   
   /* Read PHY ID */

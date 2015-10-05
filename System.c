@@ -29,7 +29,9 @@ uint8 RemoteIp[4] = {192,168,1,3};
 
 /******************************************************************************************************/
 //External Variables
-extern uint8 udp_soc;
+extern uint8 udp_media_soc;
+extern uint8 UdpMediaRecieved;
+extern uint8 MediaBuffer[256];
 
 /******************************************************************************************************/
 //Functions
@@ -112,11 +114,38 @@ void SendVoiceToPhone(void){
 			BufferPtr = udp_get_buf (128);
 			memcpy(BufferPtr,UdpBuffer,128);
 			i = 0;
-			udp_send (udp_soc, RemoteIp, UDPPORTNUMBER, BufferPtr, 128);
+			udp_send (udp_media_soc, RemoteIp, UDPMEDIAPORT, BufferPtr, 128);
 		}
 	}
 }
 
+/******************************************************************************************************/
+
+void RecieveVoiceFromPhone(void){
+	uint16 i;
+	if (UdpMediaRecieved == True){
+		UdpMediaRecieved = False;
+		for (i = 0 ; i < 64 ; i++){
+			while (!(SPI1 -> SR & SPI_SR_TXE));
+			SPI1 -> DR = ((uint16*)MediaBuffer)[i];
+		}
+	}
+}
+
+/******************************************************************************************************/
+void SendDtmfTone(uint16 *DtmfPtr){
+	uint16 i;
+	for (i = 0 ; i < 800 ; i++){
+		while (!(SPI1 -> SR & SPI_SR_TXE));
+		SPI1 -> DR = DtmfPtr[i] & 0xFFFE;
+		if (i % 128 == 0){
+			BufferPtr = udp_get_buf (128);
+			memcpy(BufferPtr,UdpBuffer,128);
+			udp_send (udp_media_soc, RemoteIp, UDPMEDIAPORT, BufferPtr, 128);
+			main_TcpNet();
+		}
+	}
+}
 /******************************************************************************************************/
 
 void SendHelloWorld(void){
@@ -128,10 +157,11 @@ void SendHelloWorld(void){
 	for (i = 0 ; i < sizeof(Hello); i++)
 		BufferPtr[i] = Hello[i];
 	
-	udp_send (udp_soc, RemoteIp, UDPPORTNUMBER, BufferPtr, sizeof(Hello));
+	udp_send (udp_media_soc, RemoteIp, UDPPORTNUMBER, BufferPtr, sizeof(Hello));
 }
 
 /******************************************************************************************************/
+
 
 
     

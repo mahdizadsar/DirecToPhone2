@@ -495,7 +495,7 @@
 //   <o>Number of UDP Sockets <1-20>
 //   <i> Number of available UDP sockets
 //   <i> Default: 5
-#define UDP_NUMSOCKS   2
+#define UDP_NUMSOCKS   5
 
 // </e>
 // <e>TCP Sockets

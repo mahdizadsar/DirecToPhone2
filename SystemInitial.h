@@ -9,6 +9,8 @@
 */
 #include "stm32f4xx.h"
 #include "types.h"
+#include "GeneralDefines.h" 
+
 
 void DmaConfig(	DMA_Stream_TypeDef *Dma, 		//Set DMA Stream Number Here
 				uint32 PeripheralAddr, 			//Peripheral Address Specify Here
@@ -21,3 +23,9 @@ void DmaEnable(	DMA_Stream_TypeDef *Dma, 			//Set DMA Stream Number Here
 				boolean Enable						// Trur = Enable or False = Disable
 );
 
+
+
+uint16 SI3056ReadRegister(uint8 RegisterNumber);
+
+void SetResetIO(GPIO_TypeDef *GpioPort, uint32 GpioPin, IOState Value);
+void SystemConfiguration(void);

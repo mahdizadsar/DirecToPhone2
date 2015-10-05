@@ -783,7 +783,7 @@
 //				<3=> Analog Mode
 //		</h> GPIO PORTD
 
-#define GPIOD_MODER_VALUE	0x550A0400
+#define GPIOD_MODER_VALUE	0x551A0400
 
 //		<h> GPIO PORTE
 //			<o0.0..1> PORT0
@@ -2000,7 +2000,7 @@
 //				<3=> High Speed
 //		</h> GPIO PORTD 
 
-#define GPIOD_OSPEEDR_VALUE	0x55020000
+#define GPIOD_OSPEEDR_VALUE	0x55060000
 
 //		<h> GPIO PORTE 
 //			<o0.0..1> PORT0
@@ -5902,7 +5902,7 @@
 //		<i>-                           8×(2–OVER8)×USARTDIV
 //	</h>
 
-#define USART3_BRR_VALUE		0x00000145
+#define USART3_BRR_VALUE		0x00007A12
 
 //	<h> Control register 1 (USART_CR1)
 //		<o0.15> Oversampling mode (OVER8)

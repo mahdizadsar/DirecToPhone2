@@ -234,7 +234,7 @@
 //   <i> the DHCP Server on local LAN.
 //   <i> You need to modify also the number of UDP Sockets,
 //   <i> because DHCP protocol uses one UDP socket to run.
-#define DHCP_ENABLE    0
+#define DHCP_ENABLE    1
 
 //     <s.40>Vendor Class Identifier
 //     <i> This value is optional. If specified, it is added
@@ -495,7 +495,7 @@
 //   <o>Number of UDP Sockets <1-20>
 //   <i> Number of available UDP sockets
 //   <i> Default: 5
-#define UDP_NUMSOCKS   5
+#define UDP_NUMSOCKS   10
 
 // </e>
 // <e>TCP Sockets

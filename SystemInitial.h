@@ -27,5 +27,7 @@ void DmaEnable(	DMA_Stream_TypeDef *Dma, 			//Set DMA Stream Number Here
 
 uint16 SI3056ReadRegister(uint8 RegisterNumber);
 
-void SetResetIO(GPIO_TypeDef *GpioPort, uint32 GpioPin, IOState Value);
+void SetResetIO(GPIO_TypeDef* , uint32 , IOState);
 void SystemConfiguration(void);
+
+

@@ -66,7 +66,7 @@ boolean FlashWrite(uint32 *Data, uint32 *Address, uint32 Size){
 	
 	while(FLASH -> SR & FLASH_SR_BSY);
 	FLASH -> CR &= (uint32)~(FLASH_CR_PG);
-	if (FLASH -> SR & (FLASH_SR_PGSERR | FLASH_SR_PGPERR | FLASH_SR_PGAERR |FLASH_SR_WRPERR |FLASH_SR_SOP)) return False;
+	if (FLASH -> SR & (FLASH_SR_PGSERR | FLASH_SR_PGPERR | FLASH_SR_PGAERR | FLASH_SR_WRPERR | FLASH_SR_SOP)) return False;
 	return True;
 }
 

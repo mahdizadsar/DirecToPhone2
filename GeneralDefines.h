@@ -29,18 +29,36 @@ typedef enum {
 	enmReset = 0,
 	enmSet	 = 1
 }IOState;	
+
+//--------------------------------------
+
+typedef enum{
+	enmCreateAccount 	= 0,
+	enmRenameAccount 	= 1,
+	enmDuplicatedName 	= 2,
+	enmGeneralError 	= 3
+}enmAccountSt_t;	
 	
 /******************************************************************************************************/
 //General Structure Type Defines 
 typedef struct {
+	uint8	ID;
 	uint8 	NameLen;
 	uint8 	Name[20];
 	uint8 	MAC[6];
-	uint8	ID;
 	uint8 	IP[4];
 	uint8	Status;
 	uint16 	Port; 
 }SpRecord_t;
+
+//--------------------------------------
+
+typedef struct {
+	uint8	ID;
+	uint8 	NameLen;
+	uint8 	Name[20];
+	uint8 	MAC[6];
+}SpRecord_ft;
 
 //--------------------------------------
 
@@ -123,5 +141,17 @@ typedef struct {
 						USART3 -> BRR = 0x00007A12;\
 						}
 
+
+
+/******************************************************************************************************/
+//Prototype of Functions Declared Here
+//General
+memcpy(uint8*,uint8*,uint32);
+
+//SPInterface.c 
+boolean UdpCommandParser(void);
+
+//System.c
+void ReadSPsRecord(void);
 
 #endif

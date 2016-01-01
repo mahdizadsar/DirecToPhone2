@@ -41,9 +41,25 @@ extern LOCALM 				localm[];
 extern ReceivePacket_t 		ReceivePacket;
 extern uint8				DtmfCode[10][1600];		
 extern enmDeviceState_t 	DeviceState;
+extern uint8 				NumberOfSPs;
+
+extern SpRecord_t 			SpRecord[20];
+extern SpRecord_ft			SpRecordFlash[20];
 
 /******************************************************************************************************/
 //Functions
+void ReadSPsRecord(void){
+	uint8 i;
+	
+	NumberOfSPs = 0;
+	
+	for (i = 0 ; i < 0xFF ; i++){
+		if (SpRecordFlash[i].ID == 0xFF)	break;
+		memcpy((uint8*)&SpRecord[i], (uint8*)&SpRecordFlash[i], sizeof(SpRecord_ft));
+		NumberOfSPs++;
+	}
+}
+/******************************************************************************************************/
 void SetResetIO(GPIO_TypeDef *GpioPort, uint32 GpioPin, IOState Value){
 	
 	if (Value == enmReset)
@@ -206,8 +222,49 @@ void DiscoveryRoutine(void){
 /******************************************************************************************************/
 void CreationAccountRoutine(void){
 	uint16 CheckSum = 0;
-	uint8 *Ptr;
-
+	uint8 MacCounter,NameCounter;
+	uint8 i,j;
+	uint8 StatusOfCreationAccount = enmCreateAccount;
+	
+	if (ReceivePacket.ID != 0xFF)		StatusOfCreationAccount = enmGeneralError;
+	if (ReceivePacket.Len < MACLEN + 1)		StatusOfCreationAccount = enmGeneralError;
+	
+	for (i = 0 ; i < NumberOfSPs ; i++){
+		MacCounter = 0;
+		NameCounter = 0;
+		
+		for (j = 0 ; j < MACLEN ; j++){
+			if(ReceivePacket.Data[j] == SpRecord[i].MAC[j]) 	MacCounter++;
+		}
+		
+		for (j = 0 ; j < (ReceivePacket.Len - MACLEN) ; j++){
+			if(ReceivePacket.Data[j + MACLEN] == SpRecord[i].Name[j]) 	NameCounter++;
+		}
+		
+		if (NameCounter == SpRecord[i].NameLen){		
+			StatusOfCreationAccount = enmDuplicatedName;
+			break;
+		}
+		else if (MacCounter == MACLEN){
+			StatusOfCreationAccount = enmRenameAccount;
+			break;
+		}
+	}
+	
+	switch(StatusOfCreationAccount)
+	{
+		case enmCreateAccount:
+			NumberOfSPs++;
+			memcpy(SpRecord[NumberOfSPs].MAC,ReceivePacket.Data,MACLEN);
+		
+			break;
+		case enmRenameAccount:
+			break;
+		case enmDuplicatedName:
+			break;
+		case enmGeneralError:
+			break;
+	}
 }
 
 /******************************************************************************************************/

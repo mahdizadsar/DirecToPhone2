@@ -3,7 +3,7 @@
 #								In the name of ALLAH 								#
 # Project : Direct to Phone															#
 # Date : 2015/10/11																	#
-# file : SpInterface.c 																	#
+# file : SpInterface.c 																#
 #																					#
 #####################################################################################
 */

@@ -28,27 +28,30 @@ uint8 				UdpCtrlSoc;				//UDP Signaling Handler
 uint8 				UdpMediaSoc;			//UDP Media Handler
 //--------------------------------------
 SpRecord_t 			SpRecord[20];
+SpRecord_ft			SpRecordFlash[20]		__attribute__((at(0x8000000 + 0xC000)));
+
 ReceivePacket_t 	ReceivePacket;
 
-uint32 i,j,k,l;
-//uint8 *TempLoc		__attribute__((at(0x8000000 + 0x4000)));
 
-uint8 udp_media_soc;
-uint16 DataRead[3],Data3;
-uint16 TCPRxTcpDataCount;
-uint8 *TCPRxDataPtr;
-boolean DataReceivedFlag;
-uint8 UdpPacket[1000];
-uint8 MediaBuffer[256];
-enmDeviceState_t DeviceState;
-uint8 UdpRecieved;
-uint8 UdpMediaRecieved;
-uint8 *BufferPtr2;
+uint32 				i,j,k,l;
+
+
+uint8 				udp_media_soc;
+uint16 				DataRead[3],Data3;
+uint16 				TCPRxTcpDataCount;
+uint8 				*TCPRxDataPtr;
+boolean 			DataReceivedFlag;
+uint8 				UdpPacket[1000];
+uint8 				MediaBuffer[256];
+enmDeviceState_t 	DeviceState;
+uint8 				UdpRecieved;
+uint8 				UdpMediaRecieved;
+uint8 				*BufferPtr2;
+uint8 				NumberOfSPs;
 
 /******************************************************************************************************/
 //External Variables
 extern uint8 DtmfCode[10][1600];
-
 
 
 /******************************************************************************************************/
@@ -94,6 +97,7 @@ void LED1(void){
 				delay(8 * k);
 			}
 		}
+		
 		for (j = 0 ; j < 20 ; j++){
 			for (l = 12 ; l < 16 ; l++){
 				GPIOD -> ODR = (uint32)(1 << l);
@@ -249,17 +253,20 @@ int main(){
 // 	DmaConfig(DMA2_Stream7, (uint32)&(USART1 -> DR), (uint32)Data1 , 0 ,sizeof(Data1) - 1);
 // 	DmaEnable(DMA2_Stream7, True);
 
+	
+	ReadSPsRecord();
+	
 	init_TcpNet();
 
 	UdpCtrlSoc = udp_get_socket(0, UDP_OPT_SEND_CS | UDP_OPT_CHK_CS, UdpCtrlCallback);
 	if (UdpCtrlSoc != 0) {
-		/* Open UDP port 8000 for Media communication */
+		/* Open UDP port 5060 for Signaling communication */
 		udp_open (UdpCtrlSoc, UDP_CTRL_PORT);
 	}
  
 	UdpMediaSoc = udp_get_socket(0, UDP_OPT_SEND_CS | UDP_OPT_CHK_CS, UdpMediaCallback);
 	if (UdpMediaSoc != 0) {
-		/* Open UDP port 5060 for Signaling communication */
+		/* Open UDP port 8000 for Media communication */
 		udp_open (UdpMediaSoc, UDP_MEDIA_PORT);
 	}
 	

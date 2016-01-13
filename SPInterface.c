@@ -46,23 +46,18 @@ boolean UdpCommandParser(void){
 	switch(ReceivePacket.Command){
 		case CMD_DISCOVERY:
 			DiscoveryRoutine();
-			//RegistrationFunction();
 			break;
 		case CMD_CREATION_ACCOUNT:
 			CreationAccountRoutine();
-			//KeepAliveFunction();
 			break;
 		case CMD_SPS_STATUS:
 			//SpsStatusRoutine();
-			//CallFunction();
 			break;
 		case CMD_CALL:
 			CallRoutine();
-			//OffHook();
 			break;
 		case CMD_ANSWER:
 			AnswerRoutine();
-			//OnHook();
 			break;
 		case CMD_HANG_UP:
 			HangUpRoutine();

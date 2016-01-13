@@ -256,7 +256,8 @@ int main(){
 // 	UartTransmmit3(Data, sizeof(Data), 0);
 // 	DmaConfig(DMA2_Stream7, (uint32)&(USART1 -> DR), (uint32)Data1 , 0 ,sizeof(Data1) - 1);
 // 	DmaEnable(DMA2_Stream7, True);
-
+	
+	USART3 -> BRR = 0x00000145;
 	
 	ReadSPsRecord();
 	
@@ -279,20 +280,28 @@ int main(){
 	SystemConfiguration();
 //	PrintDebug("\nSystem Configuration Done");
 //	PrintDebug("\nSystem Startup");
-	delay(100);
 //	FlashOptionByteCRLock(False);
-
+	SI3056WriteRegister(6, 0x00);
+	delay(100);
 	SI3056WriteRegister(8, 0x02);
 	SI3056WriteRegister(9, 0x13);
 	delay(200);
-	SI3056WriteRegister(6, 0x00);
 	SI3056WriteRegister(1, 0x28);
 	SI3056WriteRegister(20, 0xFF);
 	SI3056WriteRegister(21, 0xFF);
 	SI3056WriteRegister(5, 0x02);
 	SI3056WriteRegister(7, 0x09);				//Set Codec to 16Kbps
-
-	PrintDebug("\nReading Si3056 Registers");
+	
+	SI3056WriteRegister(45, 0xFF);
+	SI3056WriteRegister(46, 0xFF);
+	SI3056WriteRegister(47, 0xFF);
+	SI3056WriteRegister(48, 0xFF);
+	SI3056WriteRegister(49, 0xFF);
+	SI3056WriteRegister(50, 0xFF);
+	SI3056WriteRegister(51, 0xFF);
+	SI3056WriteRegister(52, 0xFF);
+	
+	//PrintDebug("\nReading Si3056 Registers");
 	SetResetIO(GPIOE, SI_OFHK, enmReset);		//Go to OFF-HOOK
 	delay(500);
 	for (i = 1 ; i < 60 ; i++){	

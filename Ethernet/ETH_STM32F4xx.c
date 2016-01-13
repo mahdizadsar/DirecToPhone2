@@ -13,11 +13,14 @@
 #include <stm32f4xx.h>                  /* STM32F4xx Definitions              */
 #include "ETH_STM32F4xx.h"
 #include "stdio.h"
-#define  PrintDebug(...) {\
+/*#define  PrintDebug(...) {\
 						USART3 -> BRR = 0x00000145;\
 						printf(__VA_ARGS__);\
 						USART3 -> BRR = 0x00007A12;\
-						}
+						}*/
+
+#define  PrintDebug(...)  printf(__VA_ARGS__);
+
 /* The following macro definitions may be used to select the speed
    of the physical link:
 

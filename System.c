@@ -24,12 +24,12 @@ void SI3056WriteRegister(uint8 ,uint8);
 //Global Variables
 uint8 			*BufferPtr;
 uint8 			UdpBuffer[512];
+uint16 			UdpCounter = 0;
 
 ReplyPacket_t 	*ReplyPacket;
 
 /******************************************************************************************************/
 //Global Constant
-uint8 RemoteIp[4] = {192,168,1,3};
 
 /******************************************************************************************************/
 //External Variables
@@ -126,19 +126,18 @@ void SI3056WriteRegister(uint8 RegisterNumber, uint8 Value){
 /******************************************************************************************************/
 
 void SendVoiceToPhone(void){
-	static uint16 i = 0;
 	uint16 Temp;
 		
 	if(SPI1 -> SR & SPI_SR_RXNE){
 		Temp = SPI1 -> DR;
-		UdpBuffer[i++] = ((uint8*)&Temp)[0]; 
-		UdpBuffer[i++] = ((uint8*)&Temp)[1];
+		UdpBuffer[UdpCounter++] = ((uint8*)&Temp)[0]; 
+		UdpBuffer[UdpCounter++] = ((uint8*)&Temp)[1];
 		
-		if (i == 128){
+		if (UdpCounter == 128){
 			BufferPtr = udp_get_buf (128);
 			memcpy(BufferPtr,UdpBuffer,128);
-			i = 0;
-			udp_send (UdpMediaSoc, RemoteIp, UDP_MEDIA_PORT, BufferPtr, 128);
+			UdpCounter = 0;
+			udp_send (UdpMediaSoc, ReceivePacket.IP, UDP_MEDIA_PORT, BufferPtr, 128);
 		}
 	}
 }
@@ -147,11 +146,28 @@ void SendVoiceToPhone(void){
 
 void RecieveVoiceFromPhone(void){
 	uint16 i;
+	uint16 Temp;
+	
 	if (UdpMediaRecieved == True){
+		
 		UdpMediaRecieved = False;
 		for (i = 0 ; i < 64 ; i++){
+			
+			if(SPI1 -> SR & SPI_SR_RXNE){
+				Temp = SPI1 -> DR;
+				UdpBuffer[UdpCounter++] = ((uint8*)&Temp)[0]; 
+				UdpBuffer[UdpCounter++] = ((uint8*)&Temp)[1];
+				
+				if (UdpCounter == 128){
+					BufferPtr = udp_get_buf (128);
+					memcpy(BufferPtr,UdpBuffer,128);
+					UdpCounter = 0;
+					udp_send (UdpMediaSoc, ReceivePacket.IP, UDP_MEDIA_PORT, BufferPtr, 128);
+				}
+			}
+			
 			while (!(SPI1 -> SR & SPI_SR_TXE));
-			SPI1 -> DR = ((uint16*)MediaBuffer)[i];
+			SPI1 -> DR = ((uint16*)MediaBuffer)[i] & 0xFFFE;
 		}
 	}
 }
@@ -244,11 +260,11 @@ void CreationAccountRoutine(void){
 		
 		if (NameCounter == SpRecord[i].NameLen){		
 			StatusOfCreationAccount = enmDuplicatedName;
-			CurrentSP = i;
 			break;
 		}
 		else if (MacCounter == MACLEN){
 			StatusOfCreationAccount = enmRenameAccount;
+			CurrentSP = i;
 			break;
 		}
 	}
@@ -264,9 +280,10 @@ void CreationAccountRoutine(void){
 			memcpy(SpRecord[CurrentSP].IP,ReceivePacket.IP,IPLEN);
 			SpRecord[CurrentSP].Status = enmOnLine;
 			SpRecord[CurrentSP].Port = ReceivePacket.Port;
+			FlashCRLock(False);
 			FlashSectoreErase(SPS_RECORD_SECTOR);
 			FlashWrite((uint8*)SpRecord, SPS_RECORD_ADDRESS, ((sizeof(SpRecord_ft))*20)/4);
-			
+			FlashCRLock(True);
 			ReplyPacket = (ReplyPacket_t*)udp_get_buf(ACCOUNT_CREATION_REPLY_LEN + PACKET_OVERHEAD);
 			
 			(*ReplyPacket).ID = D2P_ID;
@@ -277,8 +294,14 @@ void CreationAccountRoutine(void){
 		
 			for (i = 0 ; i < ((*ReplyPacket).Len + PACKET_OVERHEAD - 2) ; i++)
 				CheckSum += ((uint8*)ReplyPacket)[i];
-		
-			PrintDebug("\nSP Account Created with ID: %d",CurrentSP);
+			if (StatusOfCreationAccount == enmRenameAccount){
+				PrintDebug("\nSP Account Created with");
+			}
+			else{
+				PrintDebug("\nSP Renamed to");
+			}
+			PrintDebug("\n\t\tID: %d \n\t\tName: %s",CurrentSP,SpRecord[CurrentSP].Name)
+			PrintDebug("\n\t\tMAC: %02X:%02X:%02X:%02X:%02X:%02X",SpRecord[CurrentSP].MAC[0],SpRecord[CurrentSP].MAC[1],SpRecord[CurrentSP].MAC[2],SpRecord[CurrentSP].MAC[3],SpRecord[CurrentSP].MAC[4],SpRecord[CurrentSP].MAC[5]);
 
 			udp_send(UdpCtrlSoc, ReceivePacket.IP, UDP_CTRL_PORT, (uint8*)ReplyPacket, ACCOUNT_CREATION_REPLY_LEN + DISCOVERY_REPLY_LEN);
 			NumberOfSPs++;
@@ -293,12 +316,16 @@ void CreationAccountRoutine(void){
 		
 			for (i = 0 ; i < ((*ReplyPacket).Len + PACKET_OVERHEAD - 2) ; i++)
 				CheckSum += ((uint8*)ReplyPacket)[i];
-		
-			PrintDebug("\nSP Account Renamed To");
 
+			if (StatusOfCreationAccount == enmDuplicatedName) {
+				PrintDebug("\nSP Name is Duplicated");
+			}
+			else{
+				 PrintDebug("\nCreation Account Error");
+			}
+			
 			udp_send(UdpCtrlSoc, ReceivePacket.IP, UDP_CTRL_PORT, (uint8*)ReplyPacket, NACK_REPLY_LEN + NACK_REPLY_LEN);
 			break;
-		
 	}
 	
 }
@@ -320,6 +347,8 @@ void CallRoutine(void){
 	(*ReplyPacket).Data[0] = CheckSum;
 	(*ReplyPacket).Data[1] = CheckSum >> 8;
 	
+	udp_send(UdpCtrlSoc, ReceivePacket.IP, UDP_CTRL_PORT, (uint8*)ReplyPacket, PACKET_OVERHEAD);
+	
 	PrintDebug("\nCalling: ");
 	for (i = 0 ; i < ReceivePacket.Len ; i++)
 		PrintDebug("%d",ReceivePacket.Data[i]);
@@ -332,11 +361,10 @@ void CallRoutine(void){
 		SendDtmfTone((uint16*)DtmfCode[ReceivePacket.Data[i]]);
 		delay(22);
 	}
-	
-	udp_send(UdpCtrlSoc, ReceivePacket.IP, UDP_CTRL_PORT, (uint8*)ReplyPacket, PACKET_OVERHEAD);
 }
 
 /******************************************************************************************************/
+
 void AnswerRoutine(void){
 	uint16 CheckSum = 0;
 	uint8 i;	

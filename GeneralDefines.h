@@ -149,14 +149,15 @@ typedef struct {
 
 /******************************************************************************************************/
 //General Macros 
-#define  PrintDebug(...) {\
+/*#define  PrintDebug(...) {\
 						USART3 -> BRR = 0x00000145;\
-						delay(2);\
+						delay(3);\
 						printf(__VA_ARGS__);\
-						delay(2);\
+						delay(3);\
 						USART3 -> BRR = 0x00007A12;\
-						}
+						}*/
 
+#define  PrintDebug(...) 	printf(__VA_ARGS__);
 
 
 /******************************************************************************************************/
@@ -169,5 +170,7 @@ boolean UdpCommandParser(void);
 
 //System.c
 void ReadSPsRecord(void);
+void RecieveVoiceFromPhone(void);
+void SendVoiceToPhone(void);
 
 #endif

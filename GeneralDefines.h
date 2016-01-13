@@ -21,24 +21,36 @@ typedef enum {
 	enmOnHook 	= 0,
 	enmOffHook 	= 1,
 	enmBusy		= 2
-} enmDeviceState_t;
+} enmDeviceState_n;
 
 //--------------------------------------
 
 typedef enum {
 	enmReset = 0,
 	enmSet	 = 1
-}IOState;	
+}IOState_n;		
+	
+//--------------------------------------
+
+typedef enum{
+	enmOnLine	= 0,
+	enmOffLine	= 1
+}enmSpsStatus_n;
 
 //--------------------------------------
 
 typedef enum{
 	enmCreateAccount 	= 0,
-	enmRenameAccount 	= 1,
+	enmGeneralError 	= 1,
 	enmDuplicatedName 	= 2,
-	enmGeneralError 	= 3
-}enmAccountSt_t;	
-	
+	enmUnregistered		= 3,
+	enmNoLine			= 4,
+	enmBusyLine			= 5,
+	enmInusedLine		= 6,
+	enmSpOffline		= 7,
+	enmRenameAccount	= 8
+}enmReplyErrors_n;
+
 /******************************************************************************************************/
 //General Structure Type Defines 
 typedef struct {
@@ -83,6 +95,8 @@ typedef struct {
 
 /******************************************************************************************************/
 //General Defines
+#define SPS_RECORD_SECTOR			3
+#define SPS_RECORD_ADDRESS			(0x8000000 + 0xC000)
 //Ports
 #define UDP_MEDIA_PORT				8000
 #define UDP_CTRL_PORT				5060
@@ -108,12 +122,14 @@ typedef struct {
 
 #define DISCOVERY_REPLY_LEN			0x04
 #define ACK_REPLY_LEN				0x00
-
+#define NACK_REPLY_LEN				0x01
+#define ACCOUNT_CREATION_REPLY_LEN	0x01
 
 
 #define PACKET_OVERHEAD				0x06
 #define MACLEN						6	
 #define NAMELEN						20
+#define IPLEN						4
 
 //DTMF len for 50ms Duration
 #define DTMF_NUM_LEN				800

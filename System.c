@@ -40,7 +40,7 @@ extern uint8 				MediaBuffer[256];
 extern LOCALM 				localm[];
 extern ReceivePacket_t 		ReceivePacket;
 extern uint8				DtmfCode[10][1600];		
-extern enmDeviceState_t 	DeviceState;
+extern enmDeviceState_n 	DeviceState;
 extern uint8 				NumberOfSPs;
 
 extern SpRecord_t 			SpRecord[20];
@@ -60,13 +60,12 @@ void ReadSPsRecord(void){
 	}
 }
 /******************************************************************************************************/
-void SetResetIO(GPIO_TypeDef *GpioPort, uint32 GpioPin, IOState Value){
+void SetResetIO(GPIO_TypeDef *GpioPort, uint32 GpioPin, IOState_n Value){
 	
 	if (Value == enmReset)
 		GpioPort -> ODR &= ~(1 << GpioPin);
 	else 
 		GpioPort -> ODR |= (1 << GpioPin);
-
 }
 
 /******************************************************************************************************/
@@ -213,7 +212,7 @@ void DiscoveryRoutine(void){
 	
 	(*ReplyPacket).Data[4] = CheckSum;
 	(*ReplyPacket).Data[5] = CheckSum >> 8;
-	
+
 	PrintDebug("\nDiscovery Reply Packet Sent ,D2P IP:%d.%d.%d.%d",(*localm).IpAdr[0],(*localm).IpAdr[1],(*localm).IpAdr[2],(*localm).IpAdr[3]);
 
 	udp_send(UdpCtrlSoc, ReceivePacket.IP, UDP_CTRL_PORT, (uint8*)ReplyPacket, PACKET_OVERHEAD + DISCOVERY_REPLY_LEN);
@@ -222,12 +221,14 @@ void DiscoveryRoutine(void){
 /******************************************************************************************************/
 void CreationAccountRoutine(void){
 	uint16 CheckSum = 0;
-	uint8 MacCounter,NameCounter;
+	uint8 MacCounter,NameCounter,CurrentSP;
 	uint8 i,j;
 	uint8 StatusOfCreationAccount = enmCreateAccount;
 	
 	if (ReceivePacket.ID != 0xFF)		StatusOfCreationAccount = enmGeneralError;
 	if (ReceivePacket.Len < MACLEN + 1)		StatusOfCreationAccount = enmGeneralError;
+	
+	CurrentSP = NumberOfSPs;
 	
 	for (i = 0 ; i < NumberOfSPs ; i++){
 		MacCounter = 0;
@@ -243,6 +244,7 @@ void CreationAccountRoutine(void){
 		
 		if (NameCounter == SpRecord[i].NameLen){		
 			StatusOfCreationAccount = enmDuplicatedName;
+			CurrentSP = i;
 			break;
 		}
 		else if (MacCounter == MACLEN){
@@ -254,17 +256,51 @@ void CreationAccountRoutine(void){
 	switch(StatusOfCreationAccount)
 	{
 		case enmCreateAccount:
-			NumberOfSPs++;
-			memcpy(SpRecord[NumberOfSPs].MAC,ReceivePacket.Data,MACLEN);
-		
-			break;
 		case enmRenameAccount:
-			break;
+			SpRecord[CurrentSP].ID = CurrentSP;
+			SpRecord[CurrentSP].NameLen = ReceivePacket.Len - MACLEN;
+			memcpy(SpRecord[CurrentSP].MAC,ReceivePacket.Data,MACLEN);
+			memcpy(SpRecord[CurrentSP].Name,ReceivePacket.Data + MACLEN,SpRecord[CurrentSP].NameLen);
+			memcpy(SpRecord[CurrentSP].IP,ReceivePacket.IP,IPLEN);
+			SpRecord[CurrentSP].Status = enmOnLine;
+			SpRecord[CurrentSP].Port = ReceivePacket.Port;
+			FlashSectoreErase(SPS_RECORD_SECTOR);
+			FlashWrite((uint8*)SpRecord, SPS_RECORD_ADDRESS, ((sizeof(SpRecord_ft))*20)/4);
+			
+			ReplyPacket = (ReplyPacket_t*)udp_get_buf(ACCOUNT_CREATION_REPLY_LEN + PACKET_OVERHEAD);
+			
+			(*ReplyPacket).ID = D2P_ID;
+			(*ReplyPacket).Command = ACK;
+			(*ReplyPacket).Len = ACCOUNT_CREATION_REPLY_LEN;
+			(*ReplyPacket).Data[0] = CurrentSP;
+
+		
+			for (i = 0 ; i < ((*ReplyPacket).Len + PACKET_OVERHEAD - 2) ; i++)
+				CheckSum += ((uint8*)ReplyPacket)[i];
+		
+			PrintDebug("\nSP Account Created with ID: %d",CurrentSP);
+
+			udp_send(UdpCtrlSoc, ReceivePacket.IP, UDP_CTRL_PORT, (uint8*)ReplyPacket, ACCOUNT_CREATION_REPLY_LEN + DISCOVERY_REPLY_LEN);
+			NumberOfSPs++;
+			break;	
+			
 		case enmDuplicatedName:
+		case enmGeneralError:	
+			(*ReplyPacket).ID = D2P_ID;
+			(*ReplyPacket).Command = NACK;
+			(*ReplyPacket).Len = NACK_REPLY_LEN;
+			(*ReplyPacket).Data[0] = StatusOfCreationAccount;
+		
+			for (i = 0 ; i < ((*ReplyPacket).Len + PACKET_OVERHEAD - 2) ; i++)
+				CheckSum += ((uint8*)ReplyPacket)[i];
+		
+			PrintDebug("\nSP Account Renamed To");
+
+			udp_send(UdpCtrlSoc, ReceivePacket.IP, UDP_CTRL_PORT, (uint8*)ReplyPacket, NACK_REPLY_LEN + NACK_REPLY_LEN);
 			break;
-		case enmGeneralError:
-			break;
+		
 	}
+	
 }
 
 /******************************************************************************************************/

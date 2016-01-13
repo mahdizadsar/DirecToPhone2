@@ -15,6 +15,8 @@
 #include "stdio.h"
 #include "RTL.h"
 #include "GeneralDefines.h" 
+#include "Net_Config.h"
+
 extern void SI3056WriteRegister(uint8 ,uint8 );
 /******************************************************************************************************/
 //Global Defines
@@ -27,8 +29,8 @@ extern void SI3056WriteRegister(uint8 ,uint8 );
 uint8 				UdpCtrlSoc;				//UDP Signaling Handler
 uint8 				UdpMediaSoc;			//UDP Media Handler
 //--------------------------------------
-SpRecord_t 			SpRecord[20];
-SpRecord_ft			SpRecordFlash[20]		__attribute__((at(0x8000000 + 0xC000)));
+SpRecord_t 						SpRecord[20];
+__align(4) SpRecord_ft			SpRecordFlash[20]		__attribute__((at(SPS_RECORD_ADDRESS)));
 
 ReceivePacket_t 	ReceivePacket;
 
@@ -43,7 +45,7 @@ uint8 				*TCPRxDataPtr;
 boolean 			DataReceivedFlag;
 uint8 				UdpPacket[1000];
 uint8 				MediaBuffer[256];
-enmDeviceState_t 	DeviceState;
+enmDeviceState_n 	DeviceState;
 uint8 				UdpRecieved;
 uint8 				UdpMediaRecieved;
 uint8 				*BufferPtr2;
@@ -51,7 +53,8 @@ uint8 				NumberOfSPs;
 
 /******************************************************************************************************/
 //External Variables
-extern uint8 DtmfCode[10][1600];
+extern uint8 				DtmfCode[10][1600];
+extern LOCALM 				localm[];
 
 
 /******************************************************************************************************/
@@ -241,13 +244,14 @@ void CallFunction(void){
 
 int main(){
 
-	uint32 Counter = 0; 
+	uint32 Counter = 0 , IPCounter = 0; 
 	uint16 maxlen;
 	uint16 i;
 	uint8 *sendbuf;
 	uint32 timer = 0;
 	uint8 CID[20];
 	uint16 CIDCounter = 0;
+	uint8 OneTimeFlag = False;
 // 	uint32 *Memory = (uint32*)0x8000000;
 // 	UartTransmmit3(Data, sizeof(Data), 0);
 // 	DmaConfig(DMA2_Stream7, (uint32)&(USART1 -> DR), (uint32)Data1 , 0 ,sizeof(Data1) - 1);
@@ -314,7 +318,7 @@ int main(){
 
 	GPIOE -> MODER &= ~(3 << 22);
 	GPIOD -> ODR |= (1 << HT9032_PWRDOWN);
-	
+
  	while(1){
  		/*if ((Rx_Desc[0].Stat & 0x80000000) == 0){
 			for (i = 0 ; i < ((Rx_Desc[0].Stat >> 16) & 0x3FFF) ; i++)
@@ -327,6 +331,11 @@ int main(){
 		if (timer == 35000){
 			timer = 0;
 			timer_tick();
+			if(OneTimeFlag == False)	IPCounter++;
+			if(OneTimeFlag == False && IPCounter == 5){
+				PrintDebug("\n\nD2P IP:%d.%d.%d.%d",(*localm).IpAdr[0],(*localm).IpAdr[1],(*localm).IpAdr[2],(*localm).IpAdr[3]);
+				OneTimeFlag = True;
+			}
 		}
 		if (!(GPIOE -> IDR & (1 << 11))){
 			GPIOD -> ODR = (1 << 14);

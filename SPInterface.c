@@ -39,7 +39,7 @@ boolean UdpCommandParser(void){
 	
 	if (UdpCtrlPacketCheckSum != ReceivePacket.CheckSum){
 		PrintDebug("\nPacket Checksum Error");
-		ReceivePacket.Command = 0x00;
+		//ReceivePacket.Command = 0x00;
 	}
 		
 	
@@ -72,6 +72,7 @@ boolean UdpCommandParser(void){
 			break;
 		case CHECKSUM_ERROR:
 			//ErrorRoutine();
+			break;
 		default: 
 			//GeneralErrorRoutine();
 			break;					

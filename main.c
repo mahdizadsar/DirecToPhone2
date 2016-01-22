@@ -43,8 +43,8 @@ uint16 				DataRead[3],Data3;
 uint16 				TCPRxTcpDataCount;
 uint8 				*TCPRxDataPtr;
 boolean 			DataReceivedFlag;
-uint8 				SPtoSIMediaBuffer[128];
-uint8 				SItoSPMediaBuffer[128];
+__align(4)  uint8 	SPtoSIMediaBuffer[128];
+__align(4)  uint8 	SItoSPMediaBuffer[128];
 enmDeviceState_n 	DeviceState;
 uint8 				UdpRecieved;
 uint8 				UdpMediaRecieved;
@@ -80,8 +80,8 @@ U16 UdpMediaCallback (U8 socket, U8 *remip, U16 remport, U8 *buf, U16 len) {
 	memcpy(SPtoSIMediaBuffer,buf,len);
 	//UdpMediaRecieved = True;
 	
-	if (DeviceState == enmOffHook)			
-		DmaEnable(DMA2_Stream3, True);														//Enable Smartphone to Si3056 Media Stream Again (Memory to Peripheral)
+//	if (DeviceState == enmOffHook)			
+//		DmaEnable(DMA2_Stream3, True);														//Enable Smartphone to Si3056 Media Stream Again (Memory to Peripheral)
 	
 	return (0);
 }
@@ -280,14 +280,14 @@ int main(){
 	SI3056WriteRegister(5, 0x02);
 	SI3056WriteRegister(7, 0x09);				//Set Codec to 16Kbps
 	
-	SI3056WriteRegister(45, 0xFF);
-	SI3056WriteRegister(46, 0xFF);
-	SI3056WriteRegister(47, 0xFF);
-	SI3056WriteRegister(48, 0xFF);
-	SI3056WriteRegister(49, 0xFF);
-	SI3056WriteRegister(50, 0xFF);
-	SI3056WriteRegister(51, 0xFF);
-	SI3056WriteRegister(52, 0xFF);
+	SI3056WriteRegister(45, 0x7F);
+	SI3056WriteRegister(46, 0x7F);
+	SI3056WriteRegister(47, 0x7F);
+	SI3056WriteRegister(48, 0x7F);
+	SI3056WriteRegister(49, 0x7F);
+	SI3056WriteRegister(50, 0x7F);
+	SI3056WriteRegister(51, 0x7F);
+	SI3056WriteRegister(52, 0x7F);
 	
 	//PrintDebug("\nReading Si3056 Registers");
 	SetResetIO(GPIOE, SI_OFHK, enmReset);		//Go to OFF-HOOK
@@ -301,6 +301,8 @@ int main(){
 	
 	DmaConfig(DMA2_Stream0,(uint32)&SPI1 -> DR, (uint32)SItoSPMediaBuffer, 0, UDP_PACKET_SIZE/2);
 	DmaConfig(DMA2_Stream3,(uint32)&SPI1 -> DR, (uint32)SPtoSIMediaBuffer, 0, UDP_PACKET_SIZE/2);
+	
+//	DmaEnable(DMA2_Stream0, True);															//Enable Si3056 to Smartphone Media Stream	  	(Peripheral to Memory)
 
 	
 	//PrintDebug("\nSend DTMF 0 to Si3056");
@@ -379,10 +381,10 @@ int main(){
 			UdpRecieved = False;
 		}
 		
-// 		if (DeviceState == enmOffHook) {
-// 			SendVoiceToPhone();
-// 			RecieveVoiceFromPhone();
-// 		}
+ 		if (DeviceState == enmOffHook) {
+ 			SendVoiceToPhone();
+ 			RecieveVoiceFromPhone();
+ 		}
  			
 		/*if (DataReceivedFlag == True){
 			DataReceivedFlag = False;

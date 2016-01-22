@@ -55,10 +55,9 @@ void ReadSPsRecord(void){
 	
 	NumberOfSPs = 0;
 	
-	for (i = 0 ; i < 0xFF ; i++){
-		if (SpRecordFlash[i].ID == 0xFF)	break;
+	for (i = 0 ; i < 20 ; i++){
+		if (SpRecordFlash[i].ID != 0xFF)	NumberOfSPs++;
 		memcpy((uint8*)&SpRecord[i], (uint8*)&SpRecordFlash[i], sizeof(SpRecord_ft));
-		NumberOfSPs++;
 	}
 }
 /******************************************************************************************************/
@@ -220,7 +219,7 @@ void MediaStream(uint8 MediaState){
 void OffHook(void){
 	SetResetIO(GPIOE, SI_OFHK, enmReset);		//Go to OFF-HOOK
 	DeviceState = enmOffHook;
-	MediaStream(MEDIA_START);
+	//MediaStream(MEDIA_START);
 }
 
 /******************************************************************************************************/
@@ -228,7 +227,7 @@ void OffHook(void){
 void OnHook(void){
 	SetResetIO(GPIOE, SI_OFHK, enmSet);			//Go to ON-HOOK
 	DeviceState = enmOnHook;
-	MediaStream(MEDIA_STOP);
+	//MediaStream(MEDIA_STOP);
 }
 
 /******************************************************************************************************/
@@ -283,13 +282,12 @@ void CreationAccountRoutine(void){
 			if(ReceivePacket.Data[j + MACLEN] == SpRecord[i].Name[j]) 	NameCounter++;
 		}
 		
-		if (NameCounter == SpRecord[i].NameLen){		
-			StatusOfCreationAccount = enmDuplicatedName;
-			break;
-		}
-		else if (MacCounter == MACLEN){
+		if (MacCounter == MACLEN){
 			StatusOfCreationAccount = enmRenameAccount;
 			CurrentSP = i;
+			break;
+		}else if (SpRecord[i].NameLen == NameCounter && SpRecord[i].NameLen == (ReceivePacket.Len - MACLEN)){		
+			StatusOfCreationAccount = enmDuplicatedName;
 			break;
 		}
 	}
@@ -307,7 +305,10 @@ void CreationAccountRoutine(void){
 			SpRecord[CurrentSP].Port = ReceivePacket.Port;
 			FlashCRLock(False);
 			FlashSectoreErase(SPS_RECORD_SECTOR);
-			FlashWrite((uint8*)SpRecord, SPS_RECORD_ADDRESS, ((sizeof(SpRecord_ft))*20)/4);
+			
+			for (i = 0 ; i < 20 ; i++)
+				FlashWrite((uint32*)&SpRecord[i], (uint32*)(SPS_RECORD_ADDRESS + (i * sizeof(SpRecord_ft))), (sizeof(SpRecord_ft))/4);
+			
 			FlashCRLock(True);
 			ReplyPacket = (ReplyPacket_t*)udp_get_buf(ACCOUNT_CREATION_REPLY_LEN + PACKET_OVERHEAD);
 			
@@ -319,17 +320,21 @@ void CreationAccountRoutine(void){
 		
 			for (i = 0 ; i < ((*ReplyPacket).Len + PACKET_OVERHEAD - 2) ; i++)
 				CheckSum += ((uint8*)ReplyPacket)[i];
-			if (StatusOfCreationAccount == enmRenameAccount){
+			if (StatusOfCreationAccount == enmCreateAccount){
 				PrintDebug("\nSP Account Created with");
+				NumberOfSPs++;
 			}
 			else{
 				PrintDebug("\nSP Renamed to");
 			}
-			PrintDebug("\n\t\tID: %d \n\t\tName: %s",CurrentSP,SpRecord[CurrentSP].Name)
+			PrintDebug("\n\t\tID: %d \n\t\tName: ",CurrentSP);
+			for (i = 0 ; i < SpRecord[CurrentSP].NameLen ; i++)
+				PrintDebug("%c",SpRecord[CurrentSP].Name[i]);
+
 			PrintDebug("\n\t\tMAC: %02X:%02X:%02X:%02X:%02X:%02X",SpRecord[CurrentSP].MAC[0],SpRecord[CurrentSP].MAC[1],SpRecord[CurrentSP].MAC[2],SpRecord[CurrentSP].MAC[3],SpRecord[CurrentSP].MAC[4],SpRecord[CurrentSP].MAC[5]);
 
 			udp_send(UdpCtrlSoc, ReceivePacket.IP, UDP_CTRL_PORT, (uint8*)ReplyPacket, ACCOUNT_CREATION_REPLY_LEN + DISCOVERY_REPLY_LEN);
-			NumberOfSPs++;
+			
 			break;	
 			
 		case enmDuplicatedName:
@@ -352,7 +357,8 @@ void CreationAccountRoutine(void){
 			udp_send(UdpCtrlSoc, ReceivePacket.IP, UDP_CTRL_PORT, (uint8*)ReplyPacket, NACK_REPLY_LEN + NACK_REPLY_LEN);
 			break;
 	}
-	
+	PrintDebug("\n-----------------");
+	PrintDebug("\nNumber of SPs: %d",NumberOfSPs);
 }
 
 /******************************************************************************************************/

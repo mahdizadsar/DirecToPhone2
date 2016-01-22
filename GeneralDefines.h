@@ -177,4 +177,8 @@ void ReadSPsRecord(void);
 void RecieveVoiceFromPhone(void);
 void SendVoiceToPhone(void);
 
+
+
+boolean FlashWrite(uint32 *Data, uint32 *Address, uint32 Size);
+
 #endif

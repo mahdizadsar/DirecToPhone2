@@ -8275,8 +8275,11 @@ void DmaEnable(	DMA_Stream_TypeDef *Dma, 			//Set DMA Stream Number Here
 {
 	uint8 Temp;
 	
+	if (Enable == True)	
+		while((Dma -> CR & DMA_SxCR_EN) == DMA_SxCR_EN);
+	
 	//This Switch Case Find Address Of Desired DMA Peripheral and Reset Interrupt Flags
-	switch ((uint32)Dma & 0xFFFFF000)
+	switch ((uint32)Dma & 0xFFFFFF00)
 	{
 		case DMA1_BASE:
 			Temp = (((uint32)Dma - DMA1_Stream0_BASE) % 0x18);
@@ -8296,8 +8299,7 @@ void DmaEnable(	DMA_Stream_TypeDef *Dma, 			//Set DMA Stream Number Here
 	}
 	
 	//Enable/Disable DMA Flow 
-	if (Enable == True){
-		while((Dma -> CR & DMA_SxCR_EN) == DMA_SxCR_EN);		
+	if (Enable == True){			
 		Dma -> CR |= DMA_SxCR_EN;
 	}
 	else if (Enable == False){

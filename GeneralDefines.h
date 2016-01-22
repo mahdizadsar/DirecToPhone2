@@ -126,10 +126,14 @@ typedef struct {
 #define ACCOUNT_CREATION_REPLY_LEN	0x01
 
 
-#define PACKET_OVERHEAD				0x06
+#define PACKET_OVERHEAD				6
 #define MACLEN						6	
 #define NAMELEN						20
 #define IPLEN						4
+
+#define UDP_PACKET_SIZE				128
+#define MEDIA_STOP					0
+#define MEDIA_START					1
 
 //DTMF len for 50ms Duration
 #define DTMF_NUM_LEN				800

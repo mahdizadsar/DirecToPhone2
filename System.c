@@ -23,7 +23,6 @@ void SI3056WriteRegister(uint8 ,uint8);
 /******************************************************************************************************/
 //Global Variables
 uint8 			*BufferPtr;
-uint8 			UdpBuffer[512];
 uint16 			UdpCounter = 0;
 
 ReplyPacket_t 	*ReplyPacket;
@@ -36,15 +35,18 @@ ReplyPacket_t 	*ReplyPacket;
 extern uint8 				UdpCtrlSoc;				//UDP Signaling Handler
 extern uint8 				UdpMediaSoc;			//UDP Media Handler
 extern uint8 				UdpMediaRecieved;
-extern uint8 				MediaBuffer[256];
 extern LOCALM 				localm[];
 extern ReceivePacket_t 		ReceivePacket;
 extern uint8				DtmfCode[10][1600];		
 extern enmDeviceState_n 	DeviceState;
 extern uint8 				NumberOfSPs;
+extern uint8 				SPtoSIMediaBuffer[128];
+extern uint8 				SItoSPMediaBuffer[128];
 
 extern SpRecord_t 			SpRecord[20];
 extern SpRecord_ft			SpRecordFlash[20];
+
+
 
 /******************************************************************************************************/
 //Functions
@@ -130,12 +132,12 @@ void SendVoiceToPhone(void){
 		
 	if(SPI1 -> SR & SPI_SR_RXNE){
 		Temp = SPI1 -> DR;
-		UdpBuffer[UdpCounter++] = ((uint8*)&Temp)[0]; 
-		UdpBuffer[UdpCounter++] = ((uint8*)&Temp)[1];
+		SItoSPMediaBuffer[UdpCounter++] = ((uint8*)&Temp)[0]; 
+		SItoSPMediaBuffer[UdpCounter++] = ((uint8*)&Temp)[1];
 		
 		if (UdpCounter == 128){
 			BufferPtr = udp_get_buf (128);
-			memcpy(BufferPtr,UdpBuffer,128);
+			memcpy(BufferPtr,SItoSPMediaBuffer,128);
 			UdpCounter = 0;
 			udp_send (UdpMediaSoc, ReceivePacket.IP, UDP_MEDIA_PORT, BufferPtr, 128);
 		}
@@ -155,19 +157,19 @@ void RecieveVoiceFromPhone(void){
 			
 			if(SPI1 -> SR & SPI_SR_RXNE){
 				Temp = SPI1 -> DR;
-				UdpBuffer[UdpCounter++] = ((uint8*)&Temp)[0]; 
-				UdpBuffer[UdpCounter++] = ((uint8*)&Temp)[1];
+				SItoSPMediaBuffer[UdpCounter++] = ((uint8*)&Temp)[0]; 
+				SItoSPMediaBuffer[UdpCounter++] = ((uint8*)&Temp)[1];
 				
 				if (UdpCounter == 128){
 					BufferPtr = udp_get_buf (128);
-					memcpy(BufferPtr,UdpBuffer,128);
+					memcpy(BufferPtr,SItoSPMediaBuffer,128);
 					UdpCounter = 0;
 					udp_send (UdpMediaSoc, ReceivePacket.IP, UDP_MEDIA_PORT, BufferPtr, 128);
 				}
 			}
 			
 			while (!(SPI1 -> SR & SPI_SR_TXE));
-			SPI1 -> DR = ((uint16*)MediaBuffer)[i] & 0xFFFE;
+			SPI1 -> DR = ((uint16*)SPtoSIMediaBuffer)[i] & 0xFFFE;
 		}
 	}
 }
@@ -202,10 +204,33 @@ void SendDtmfTone(uint16 *DtmfPtr){
 
 /******************************************************************************************************/
 
+void MediaStream(uint8 MediaState){
 
+	if (MediaState == MEDIA_START){
+		DmaEnable(DMA2_Stream0, True);															//Enable Si3056 to Smartphone Media Stream	  	(Peripheral to Memory)
+	}																				
+	else{
+		DmaEnable(DMA2_Stream0, False);        													//Disable Si3056 to Smartphone Media Stream     (Peripheral to Memory)																		
+		DmaEnable(DMA2_Stream3, False);															//Disable Smartphone to Si3056 Media Stream		(Memory to Peripheral)
+	}
+}
 
-    
-/////////////////////////////////////
+/******************************************************************************************************/
+
+void OffHook(void){
+	SetResetIO(GPIOE, SI_OFHK, enmReset);		//Go to OFF-HOOK
+	DeviceState = enmOffHook;
+	MediaStream(MEDIA_START);
+}
+
+/******************************************************************************************************/
+
+void OnHook(void){
+	SetResetIO(GPIOE, SI_OFHK, enmSet);			//Go to ON-HOOK
+	DeviceState = enmOnHook;
+	MediaStream(MEDIA_STOP);
+}
+
 /******************************************************************************************************/
 
 void DiscoveryRoutine(void){
@@ -355,6 +380,7 @@ void CallRoutine(void){
 	PrintDebug("...");
 	
 	OffHook();
+	
 	delay(200);
 	
 	for (i = 0 ; i < ReceivePacket.Len ; i++){
@@ -414,7 +440,22 @@ void HangUpRoutine(void){
 	udp_send(UdpCtrlSoc, ReceivePacket.IP, UDP_CTRL_PORT, (uint8*)ReplyPacket, PACKET_OVERHEAD);
 }
 
+/******************************************************************************************************/
+/*																									  */
+/*										Interrrupt Functions										  */
+/*																									  */
+/******************************************************************************************************/
 
-
+//Interrupt DMA2 Stream0
+void DMA2_Stream0_IRQHandler(void){
+	
+	if ((DMA2 -> LISR & DMA_LISR_TCIF0) == DMA_LISR_TCIF0)
+	{
+		BufferPtr = udp_get_buf (UDP_PACKET_SIZE);
+		memcpy(BufferPtr,SItoSPMediaBuffer,UDP_PACKET_SIZE);
+		udp_send (UdpMediaSoc, ReceivePacket.IP, UDP_MEDIA_PORT, BufferPtr, UDP_PACKET_SIZE);
+		DmaEnable(DMA2_Stream0, True);															//Enable Si3056 to Smartphone Media Stream	  	(Peripheral to Memory)
+	}
+}
 
 

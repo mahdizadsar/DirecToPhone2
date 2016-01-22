@@ -6940,7 +6940,7 @@
 //			<q0.1> Direct mode error interrupt enable (DMEIE)			
 //		</h>
 
-#define DMA2_S0CR_VALUE		0x00000000
+#define DMA2_S0CR_VALUE		0x06000C11
 
 //		<h> DMA stream 0 FIFO control register (DMA_S0FCR)
 //			<q0.7> FIFO error interrupt enable (FEIE)
@@ -7180,7 +7180,7 @@
 //			<q0.1> Direct mode error interrupt enable (DMEIE)			
 //		</h>
 
-#define DMA2_S3CR_VALUE		0x00000000
+#define DMA2_S3CR_VALUE		0x06000C41
 
 //		<h> DMA stream 3 FIFO control register (DMA_S3FCR)
 //			<q0.7> FIFO error interrupt enable (FEIE)
@@ -7500,7 +7500,7 @@
 //			<q0.1> Direct mode error interrupt enable (DMEIE)			
 //		</h>
 
-#define DMA2_S7CR_VALUE		0x08000441
+#define DMA2_S7CR_VALUE		0x08000440
 
 //		<h> DMA stream 7 FIFO control register (DMA_S7FCR)
 //			<q0.7> FIFO error interrupt enable (FEIE)
@@ -8268,18 +8268,41 @@ void DmaConfig(	DMA_Stream_TypeDef *Dma, 		//Set DMA Stream Number Here
 
 //-------------------------------------------------------------------------------------------------------
 
+
 void DmaEnable(	DMA_Stream_TypeDef *Dma, 			//Set DMA Stream Number Here
 				boolean Enable						// True = Enable or False = Disable
 )
 {
-	if (Enable == True)
-		Dma -> CR |= 0x00000001;
-	else if (Enable == False)
-		Dma -> CR &= 0xFFFFFFFE;
+	uint8 Temp;
+	
+	//This Switch Case Find Address Of Desired DMA Peripheral and Reset Interrupt Flags
+	switch ((uint32)Dma & 0xFFFFF000)
+	{
+		case DMA1_BASE:
+			Temp = (((uint32)Dma - DMA1_Stream0_BASE) % 0x18);
+			if (Temp < 4)
+				DMA1 -> LIFCR = ((DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0) << Temp);
+			else if(Temp < 8)
+				DMA1 -> HIFCR = ((DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4 | DMA_HIFCR_CDMEIF4 | DMA_HIFCR_CFEIF4) << (Temp % 4));
+		break;
+			
+		case DMA2_BASE:
+			Temp = (((uint32)Dma - DMA2_Stream0_BASE) % 0x18);
+			if (Temp < 4)
+				DMA2 -> LIFCR = ((DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0) << Temp);
+			else if(Temp < 8)
+				DMA2 -> HIFCR = ((DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4 | DMA_HIFCR_CDMEIF4 | DMA_HIFCR_CFEIF4) << (Temp % 4));
+		break;
+	}
+	
+	//Enable/Disable DMA Flow 
+	if (Enable == True){
+		while((Dma -> CR & DMA_SxCR_EN) == DMA_SxCR_EN);		
+		Dma -> CR |= DMA_SxCR_EN;
+	}
+	else if (Enable == False){
+		Dma -> CR &= ~DMA_SxCR_EN;
+	}
 }
-
-
-
-
 
 //------------- <<< end of configuration section >>> -----------------------

@@ -43,8 +43,8 @@ uint16 				DataRead[3],Data3;
 uint16 				TCPRxTcpDataCount;
 uint8 				*TCPRxDataPtr;
 boolean 			DataReceivedFlag;
-uint8 				UdpPacket[1000];
-uint8 				MediaBuffer[256];
+uint8 				SPtoSIMediaBuffer[128];
+uint8 				SItoSPMediaBuffer[128];
 enmDeviceState_n 	DeviceState;
 uint8 				UdpRecieved;
 uint8 				UdpMediaRecieved;
@@ -55,7 +55,6 @@ uint8 				NumberOfSPs;
 //External Variables
 extern uint8 				DtmfCode[10][1600];
 extern LOCALM 				localm[];
-
 
 /******************************************************************************************************/
 
@@ -78,11 +77,15 @@ U16 UdpMediaCallback (U8 socket, U8 *remip, U16 remport, U8 *buf, U16 len) {
   /* This function is called when UDP data is received */
 	
   /* Process received data from 'buf' */
-	memcpy(MediaBuffer,buf,len);
-	UdpMediaRecieved = True;
+	memcpy(SPtoSIMediaBuffer,buf,len);
+	//UdpMediaRecieved = True;
+	
+	if (DeviceState == enmOffHook)			
+		DmaEnable(DMA2_Stream3, True);														//Enable Smartphone to Si3056 Media Stream Again (Memory to Peripheral)
 	
 	return (0);
 }
+
 /******************************************************************************************************/
 
 void delay (uint32 time){
@@ -212,21 +215,6 @@ void RegistrationFunction(void){
 	udp_send (udp_soc, Packet.IP , UDPSIGNALINGPORT, BufferPtr2, 31);*/
 }
 
-
-/******************************************************************************************************/
-
-void OffHook(void){
-	SetResetIO(GPIOE, SI_OFHK, enmReset);		//Go to OFF-HOOK
-	DeviceState = enmOffHook;
-}
-
-/******************************************************************************************************/
-
-void OnHook(void){
-	SetResetIO(GPIOE, SI_OFHK, enmSet);			//Go to ON-HOOK
-	DeviceState = enmOnHook;
-}
-
 /******************************************************************************************************/
 void CallFunction(void){
 /*	PrintDebug("\nCall Number:");
@@ -310,6 +298,11 @@ int main(){
 	}
 	SetResetIO(GPIOE, SI_OFHK, enmSet);			//Go to ON-HOOK
 
+	
+	DmaConfig(DMA2_Stream0,(uint32)&SPI1 -> DR, (uint32)SItoSPMediaBuffer, 0, UDP_PACKET_SIZE/2);
+	DmaConfig(DMA2_Stream3,(uint32)&SPI1 -> DR, (uint32)SPtoSIMediaBuffer, 0, UDP_PACKET_SIZE/2);
+
+	
 	//PrintDebug("\nSend DTMF 0 to Si3056");
 	/*for (i = 0 ; i < 11 ; i++){
 		SendDtmfTone((uint16*)DtmfCode[PhoneNumber[i]]);
@@ -386,11 +379,11 @@ int main(){
 			UdpRecieved = False;
 		}
 		
-		if (DeviceState == enmOffHook) {
-			SendVoiceToPhone();
-			RecieveVoiceFromPhone();
-		}
-			
+// 		if (DeviceState == enmOffHook) {
+// 			SendVoiceToPhone();
+// 			RecieveVoiceFromPhone();
+// 		}
+ 			
 		/*if (DataReceivedFlag == True){
 			DataReceivedFlag = False;
 			switch(TCPRxDataPtr[0]){

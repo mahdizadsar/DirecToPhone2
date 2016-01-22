@@ -147,6 +147,12 @@ typedef struct {
 #define HT9032_RING					11
 
 
+
+#define ACT2						(1<<7)
+#define ACT							(1<<5)
+#define IIRE						(1<<4)
+
+
 /******************************************************************************************************/
 //General Macros 
 /*#define  PrintDebug(...) {\

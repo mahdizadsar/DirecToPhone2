@@ -250,7 +250,7 @@ int main(){
 	uint8 *sendbuf;
 	uint32 timer = 0;
 	uint8 CID[20];
-	uint16 CIDCounter = 0;
+	uint16 CIDCounter = 0,temp;
 	uint8 OneTimeFlag = False;
 // 	uint32 *Memory = (uint32*)0x8000000;
 // 	UartTransmmit3(Data, sizeof(Data), 0);
@@ -282,16 +282,18 @@ int main(){
 //	PrintDebug("\nSystem Startup");
 //	FlashOptionByteCRLock(False);
 	SI3056WriteRegister(6, 0x00);
-	delay(100);
+	delay(200);
 	SI3056WriteRegister(8, 0x02);
 	SI3056WriteRegister(9, 0x13);
-	delay(200);
+	delay(400);
 	SI3056WriteRegister(1, 0x28);
 	SI3056WriteRegister(20, 0xFF);
 	SI3056WriteRegister(21, 0xFF);
 	SI3056WriteRegister(5, 0x02);
 	SI3056WriteRegister(7, 0x09);				//Set Codec to 16Kbps
 	
+	SI3056WriteRegister(16, (ACT2 + IIRE));
+
 	SI3056WriteRegister(45, 0xFF);
 	SI3056WriteRegister(46, 0xFF);
 	SI3056WriteRegister(47, 0xFF);
@@ -299,14 +301,15 @@ int main(){
 	SI3056WriteRegister(49, 0xFF);
 	SI3056WriteRegister(50, 0xFF);
 	SI3056WriteRegister(51, 0xFF);
-	SI3056WriteRegister(52, 0xFF);
+	SI3056WriteRegister(52, 0XFF);
 	
 	//PrintDebug("\nReading Si3056 Registers");
 	SetResetIO(GPIOE, SI_OFHK, enmReset);		//Go to OFF-HOOK
 	delay(500);
 	for (i = 1 ; i < 60 ; i++){	
-		PrintDebug("\nSi3056 Register%02d: %02X", i ,SI3056ReadRegister(i));
-		delay(2);
+		temp = SI3056ReadRegister(i);
+		PrintDebug("\nSi3056 Register%02d: %04X", i ,temp);
+		delay(5);
 	}
 	SetResetIO(GPIOE, SI_OFHK, enmSet);			//Go to ON-HOOK
 

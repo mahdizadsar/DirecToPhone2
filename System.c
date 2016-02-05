@@ -26,8 +26,8 @@ uint8 			*BufferPtr;
 uint16 			UdpCounter = 0;
 uint8 			SampleCounter = 0;
 
-uint16			TxValue[24000];
-uint16			RxValue[24000];
+//uint16			TxValue[24000];
+//uint16			RxValue[24000];
 uint16			RxCounter = 0;
 uint16			TxCounter = 0;
 
@@ -52,7 +52,7 @@ extern ReceivePacket_t 		ReceivePacket;
 extern uint8				DtmfCode[10][1600];		
 extern enmDeviceState_n 	DeviceState;
 extern uint8 				NumberOfSPs;
-extern uint8 				SPtoSIMediaBuffer[2][128];
+extern uint8 				SPtoSIMediaBuffer[128];
 extern uint8 				SItoSPMediaBuffer[128];
 
 extern SpRecord_t 			SpRecord[20];
@@ -178,7 +178,7 @@ void RecieveVoiceFromPhone(void){
 			if(SPI1 -> SR & SPI_SR_RXNE){
 				Temp = SPI1 -> DR;
 				
-				if (Record == 1 && RxCounter < 24000)	RxValue[RxCounter++] = Temp;
+				//if (Record == 1 && RxCounter < 24000)	RxValue[RxCounter++] = Temp;
 				
 				SItoSPMediaBuffer[UdpCounter++] = ((uint8*)&Temp)[0]; 
 				SItoSPMediaBuffer[UdpCounter++] = ((uint8*)&Temp)[1];
@@ -201,7 +201,7 @@ void RecieveVoiceFromPhone(void){
 				}
 				
 				
-				if (Record == 1 && TxCounter < 24000)	TxValue[TxCounter++] = ((uint16*)SPtoSIMediaBuffer)[i];
+				//if (Record == 1 && TxCounter < 24000)	TxValue[TxCounter++] = ((uint16*)SPtoSIMediaBuffer)[i];
 			}
 			
 		//}
@@ -297,12 +297,15 @@ void OffHook(void){
 	uint32 x;
 	SetResetIO(GPIOE, SI_OFHK, enmReset);		//Go to OFF-HOOK
 	DeviceState = enmOffHook;
-	//MediaStream(MEDIA_START);
-	NVIC_EnableIRQ(SPI1_IRQn);
+	MediaStream(MEDIA_START);
+	NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+	
+	
+	//NVIC_EnableIRQ(SPI1_IRQn);
 	//SPI1 -> CR2 |= SPI_CR2_RXNEIE; 
-	x = SPI1 -> SR;
-	TxCtr = 0;
-	UdpCounter = 0;
+	//x = SPI1 -> SR;
+	//TxCtr = 0;
+	//UdpCounter = 0;
 }
 
 /******************************************************************************************************/
@@ -311,11 +314,14 @@ void OnHook(void){
 	uint32 x;
 	SetResetIO(GPIOE, SI_OFHK, enmSet);			//Go to ON-HOOK
 	DeviceState = enmOnHook;
-	x = SPI1 -> SR;
-	NVIC_DisableIRQ(SPI1_IRQn);
-	SPI1 -> CR2 = 0;
-	UdpMediaRecieved = False;
-	//MediaStream(MEDIA_STOP);
+	//x = SPI1 -> SR;
+	//NVIC_DisableIRQ(SPI1_IRQn);
+	//SPI1 -> CR2 = 0;
+	//UdpMediaRecieved = False;
+	NVIC_DisableIRQ(DMA2_Stream0_IRQn);
+	NVIC_DisableIRQ(DMA2_Stream3_IRQn);
+	
+	MediaStream(MEDIA_STOP);
 }
 
 /******************************************************************************************************/
@@ -552,7 +558,6 @@ void DMA2_Stream0_IRQHandler(void){
 	}
 }
 
-
 //Interrupt SPI1 TX and RX
 void SPI1_IRQHandler(void){
 	uint16 Temp;
@@ -565,14 +570,14 @@ void SPI1_IRQHandler(void){
 		else
 			BufFlag = 0;
 	
-		SPI1 -> DR = ((uint16*)SPtoSIMediaBuffer[BufFlag])[TxCtr++] & 0xFFFE;
+		SPI1 -> DR = ((uint16*)SPtoSIMediaBuffer)[TxCtr++] & 0xFFFE;
 		
 		if (TxCtr == 63) {
 			TxCtr = 0;
 			Jcounter++;
 		}
 		
-		if (Record == 1 && TxCounter < 24000)	TxValue[TxCounter++] = ((uint16*)SPtoSIMediaBuffer)[TxCtr];
+		//if (Record == 1 && TxCounter < 24000)	TxValue[TxCounter++] = ((uint16*)SPtoSIMediaBuffer)[TxCtr];
 	}
 	
 	/*if(SPI1 -> SR & SPI_SR_RXNE){

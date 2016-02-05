@@ -43,7 +43,7 @@ uint16 				DataRead[3],Data3;
 uint16 				TCPRxTcpDataCount;
 uint8 				*TCPRxDataPtr;
 boolean 			DataReceivedFlag;
-__align(4)  uint8 	SPtoSIMediaBuffer[2][128];
+__align(4)  uint8 	SPtoSIMediaBuffer[128];
 __align(4)  uint8 	SItoSPMediaBuffer[128];
 enmDeviceState_n 	DeviceState;
 uint8 				UdpRecieved;
@@ -81,31 +81,31 @@ U16 UdpCtrlCallback (U8 socket, U8 *remip, U16 remport, U8 *buf, U16 len) {
 
 U16 UdpMediaCallback (U8 socket, U8 *remip, U16 remport, U8 *buf, U16 len) {
   /* This function is called when UDP data is received */
-	
+	uint8 x;
   /* Process received data from 'buf' */
 	//if (UdpMediaRecieved == False)	{
 	
-	if (UdpMediaRecieved == False){
+	/*if (UdpMediaRecieved == False){
 		TxCtr = 0;
 		BufFlag = 0;
-	}
+	}*/
 	
-	memcpy(SPtoSIMediaBuffer[BufFlag],buf,len);
-	Tcounter++;
+	for(x = 0 ; x < 128 ; x++)
+		SPtoSIMediaBuffer[x] = buf[x];
+	//	SPtoSIMediaBuffer[i] = i;
 	
-	if (BufFlag == 0)
-		BufFlag = 1;
-	else
-		BufFlag = 0;
-
-	if (UdpMediaRecieved == False){
-		SPI1 -> CR2 |= SPI_CR2_TXEIE;
+	//memcpy(SPtoSIMediaBuffer,buf,len);
+	
+	if (DeviceState == enmOffHook)	 		
+		DmaEnable(DMA2_Stream3, True);														//Enable Smartphone to Si3056 Media Stream Again (Memory to Peripheral)
+	
+	
+	/*if (UdpMediaRecieved == False){
+		//SPI1 -> CR2 |= SPI_CR2_TXEIE;
 		UdpMediaRecieved = True;
-	}
+	}*/
 	
-//	if (DeviceState == enmOffHook)			
-//		DmaEnable(DMA2_Stream3, True);														//Enable Smartphone to Si3056 Media Stream Again (Memory to Peripheral)
-	
+
 	return (0);
 }
 
@@ -305,7 +305,6 @@ int main(){
 	
 	
 	//SI3056WriteRegister(16, ACT | IIRE);
-	
 	//SI3056WriteRegister(15, 0x70);
 	
 	
@@ -330,9 +329,8 @@ int main(){
 	}
 	SetResetIO(GPIOE, SI_OFHK, enmSet);			//Go to ON-HOOK
 
-	
-	//DmaConfig(DMA2_Stream0,(uint32)&SPI1 -> DR, (uint32)SItoSPMediaBuffer, 0, UDP_PACKET_SIZE/2);
-	//DmaConfig(DMA2_Stream3,(uint32)&SPI1 -> DR, (uint32)SPtoSIMediaBuffer, 0, UDP_PACKET_SIZE/2);
+	DmaConfig(DMA2_Stream0,(uint32)&SPI1 -> DR, (uint32)SItoSPMediaBuffer, 0, UDP_PACKET_SIZE/2);
+	DmaConfig(DMA2_Stream3,(uint32)&SPI1 -> DR, (uint32)SPtoSIMediaBuffer, 0, UDP_PACKET_SIZE/2);
 	
 //	DmaEnable(DMA2_Stream0, True);															//Enable Si3056 to Smartphone Media Stream	  	(Peripheral to Memory)
 

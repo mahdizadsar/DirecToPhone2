@@ -6940,7 +6940,7 @@
 //			<q0.1> Direct mode error interrupt enable (DMEIE)			
 //		</h>
 
-#define DMA2_S0CR_VALUE		0x06000C10
+#define DMA2_S0CR_VALUE		0x06000C11
 
 //		<h> DMA stream 0 FIFO control register (DMA_S0FCR)
 //			<q0.7> FIFO error interrupt enable (FEIE)
@@ -7180,7 +7180,7 @@
 //			<q0.1> Direct mode error interrupt enable (DMEIE)			
 //		</h>
 
-#define DMA2_S3CR_VALUE		0x06000C40
+#define DMA2_S3CR_VALUE		0x06000C51
 
 //		<h> DMA stream 3 FIFO control register (DMA_S3FCR)
 //			<q0.7> FIFO error interrupt enable (FEIE)
@@ -7340,7 +7340,7 @@
 //			<q0.1> Direct mode error interrupt enable (DMEIE)			
 //		</h>
 
-#define DMA2_S5CR_VALUE		0x00000000
+#define DMA2_S5CR_VALUE		0x06000C40
 
 //		<h> DMA stream 5 FIFO control register (DMA_S5FCR)
 //			<q0.7> FIFO error interrupt enable (FEIE)
@@ -7584,7 +7584,7 @@
 //			<o0.0> Rx buffer DMA enable (RXDMAEN)
 //		</h>
 //	</e>
-#define SPI1_CR2_VALUE		0x00000000
+#define SPI1_CR2_VALUE		0x00000003
 
 //	<e0.10> I2S Mode
 //		<h> SPI_I2S configuration register (SPI_I2SCFGR)
@@ -8282,19 +8282,27 @@ void DmaEnable(	DMA_Stream_TypeDef *Dma, 			//Set DMA Stream Number Here
 	switch ((uint32)Dma & 0xFFFFFF00)
 	{
 		case DMA1_BASE:
-			Temp = (((uint32)Dma - DMA1_Stream0_BASE) % 0x18);
-			if (Temp < 4)
-				DMA1 -> LIFCR = ((DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0) << Temp);
+			Temp = (((uint32)Dma - DMA1_Stream0_BASE) / 0x18);
+			if (Temp < 2)
+				DMA1 -> LIFCR = ((DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0) << ((Temp % 2) * 6));
+			else if (Temp < 4)
+				DMA1 -> LIFCR = ((DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0) << (((Temp % 2) * 6) + 16));
+			else if(Temp < 6)
+				DMA1 -> HIFCR = ((DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4 | DMA_HIFCR_CDMEIF4 | DMA_HIFCR_CFEIF4) << ((Temp % 2) * 6));
 			else if(Temp < 8)
-				DMA1 -> HIFCR = ((DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4 | DMA_HIFCR_CDMEIF4 | DMA_HIFCR_CFEIF4) << (Temp % 4));
+				DMA1 -> HIFCR = ((DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4 | DMA_HIFCR_CDMEIF4 | DMA_HIFCR_CFEIF4) << (((Temp % 2) * 6) + 16));
 		break;
 			
 		case DMA2_BASE:
-			Temp = (((uint32)Dma - DMA2_Stream0_BASE) % 0x18);
-			if (Temp < 4)
-				DMA2 -> LIFCR = ((DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0) << Temp);
+			Temp = (((uint32)Dma - DMA2_Stream0_BASE) / 0x18);
+			if (Temp < 2)
+				DMA2 -> LIFCR = ((DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0) << ((Temp % 2) * 6));
+			else if (Temp < 4)
+				DMA2 -> LIFCR = ((DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0) << (((Temp % 2) * 6) + 16));
+			else if(Temp < 6)
+				DMA2 -> HIFCR = ((DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4 | DMA_HIFCR_CDMEIF4 | DMA_HIFCR_CFEIF4) << ((Temp % 2) * 6));
 			else if(Temp < 8)
-				DMA2 -> HIFCR = ((DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4 | DMA_HIFCR_CDMEIF4 | DMA_HIFCR_CFEIF4) << (Temp % 4));
+				DMA2 -> HIFCR = ((DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4 | DMA_HIFCR_CDMEIF4 | DMA_HIFCR_CFEIF4) << (((Temp % 2) * 6) + 16));
 		break;
 	}
 	

@@ -10,6 +10,7 @@
 
 #include "stm32f4xx.h"
 #include "types.h"
+#include "string.h"
 
 
 #ifndef __GENERALDEFINES__
@@ -125,6 +126,9 @@ typedef struct {
 #define NACK_REPLY_LEN				0x01
 #define ACCOUNT_CREATION_REPLY_LEN	0x01
 
+#define ACT2						(1<<7)
+#define ACT							(1<<5)
+#define IIRE						(1<<4)
 
 #define PACKET_OVERHEAD				6
 #define MACLEN						6	
@@ -167,7 +171,7 @@ typedef struct {
 /******************************************************************************************************/
 //Prototype of Functions Declared Here
 //General
-memcpy(uint8*,uint8*,uint32);
+//memcpy(uint8*,uint8*,uint32);
 
 //SPInterface.c 
 boolean UdpCommandParser(void);
@@ -177,6 +181,27 @@ void ReadSPsRecord(void);
 void RecieveVoiceFromPhone(void);
 void SendVoiceToPhone(void);
 
+
+//SPsInterface
+void DiscoveryRoutine(void);
+void CreationAccountRoutine(void);
+void SpsStatusRoutine(void);
+void CallRoutine(void);
+void AnswerRoutine(void);
+void HangUpRoutine(void);
+
+//Embeded Flash
+boolean FlashSectoreErase(uint8 SectorNumber);
+boolean FlashWrite(uint32 *Data, uint32 *Address, uint32 Size);
+boolean FlashSectoreErase(uint8 SectorNumber);
+boolean FlashMassErase(void);
+boolean FlashCRLock(boolean Lock);
+
+//
+void delay (uint32 time);
+
+//Main.c
+void SER_PutChar(unsigned char Data);
 
 
 boolean FlashWrite(uint32 *Data, uint32 *Address, uint32 Size);

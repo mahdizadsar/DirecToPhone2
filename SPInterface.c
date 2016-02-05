@@ -68,9 +68,12 @@ boolean UdpCommandParser(void){
 		case CHECKSUM_ERROR:
 			//ErrorRoutine();
 			break;
-		default: 
+		default:  
 			//GeneralErrorRoutine();
 			break;					
 		
 	}
+	
+	return 0;
 }
+

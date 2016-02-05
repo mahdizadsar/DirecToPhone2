@@ -6940,7 +6940,7 @@
 //			<q0.1> Direct mode error interrupt enable (DMEIE)			
 //		</h>
 
-#define DMA2_S0CR_VALUE		0x06000C11
+#define DMA2_S0CR_VALUE		0x06000C10
 
 //		<h> DMA stream 0 FIFO control register (DMA_S0FCR)
 //			<q0.7> FIFO error interrupt enable (FEIE)
@@ -7180,7 +7180,7 @@
 //			<q0.1> Direct mode error interrupt enable (DMEIE)			
 //		</h>
 
-#define DMA2_S3CR_VALUE		0x06000C41
+#define DMA2_S3CR_VALUE		0x06000C40
 
 //		<h> DMA stream 3 FIFO control register (DMA_S3FCR)
 //			<q0.7> FIFO error interrupt enable (FEIE)

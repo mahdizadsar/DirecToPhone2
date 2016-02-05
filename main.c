@@ -43,18 +43,24 @@ uint16 				DataRead[3],Data3;
 uint16 				TCPRxTcpDataCount;
 uint8 				*TCPRxDataPtr;
 boolean 			DataReceivedFlag;
-__align(4)  uint8 	SPtoSIMediaBuffer[128];
+__align(4)  uint8 	SPtoSIMediaBuffer[2][128];
 __align(4)  uint8 	SItoSPMediaBuffer[128];
 enmDeviceState_n 	DeviceState;
 uint8 				UdpRecieved;
-uint8 				UdpMediaRecieved;
+uint8 				UdpMediaRecieved = False;
 uint8 				*BufferPtr2;
 uint8 				NumberOfSPs;
 
+
+int16				Tone1KHz[16] = {0 ,12540,23170,30274,32767,30274,23170,12540,0,-12540,-23170,-30274,-32768,-30274,-23170,-12540};
+
+uint32 Tcounter = 0;
+uint8 BufFlag;
 /******************************************************************************************************/
 //External Variables
 extern uint8 				DtmfCode[10][1600];
 extern LOCALM 				localm[];
+extern uint32 TxCtr;
 
 /******************************************************************************************************/
 
@@ -77,8 +83,25 @@ U16 UdpMediaCallback (U8 socket, U8 *remip, U16 remport, U8 *buf, U16 len) {
   /* This function is called when UDP data is received */
 	
   /* Process received data from 'buf' */
-	memcpy(SPtoSIMediaBuffer,buf,len);
-	//UdpMediaRecieved = True;
+	//if (UdpMediaRecieved == False)	{
+	
+	if (UdpMediaRecieved == False){
+		TxCtr = 0;
+		BufFlag = 0;
+	}
+	
+	memcpy(SPtoSIMediaBuffer[BufFlag],buf,len);
+	Tcounter++;
+	
+	if (BufFlag == 0)
+		BufFlag = 1;
+	else
+		BufFlag = 0;
+
+	if (UdpMediaRecieved == False){
+		SPI1 -> CR2 |= SPI_CR2_TXEIE;
+		UdpMediaRecieved = True;
+	}
 	
 //	if (DeviceState == enmOffHook)			
 //		DmaEnable(DMA2_Stream3, True);														//Enable Smartphone to Si3056 Media Stream Again (Memory to Peripheral)
@@ -264,34 +287,43 @@ int main(){
 	}
 	
 //	delay(5000);
-	PrintDebug("\n*** In The Name of ALLAH ***");
+	PrintDebug("\n** In The Name of ALLAH **");
 	SystemConfiguration();
 //	PrintDebug("\nSystem Configuration Done");
 //	PrintDebug("\nSystem Startup");
 //	FlashOptionByteCRLock(False);
 	SI3056WriteRegister(6, 0x00);
-	delay(100);
-	SI3056WriteRegister(8, 0x02);
-	SI3056WriteRegister(9, 0x13);
-	delay(200);
+	delay(500);
+	SI3056WriteRegister(8, 0x02);			//N Register   Value = N - 1
+	SI3056WriteRegister(9, 0x13);			//M Register   Value = M - 1
+	delay(250);
 	SI3056WriteRegister(1, 0x28);
 	SI3056WriteRegister(20, 0xFF);
 	SI3056WriteRegister(21, 0xFF);
 	SI3056WriteRegister(5, 0x02);
 	SI3056WriteRegister(7, 0x09);				//Set Codec to 16Kbps
 	
-	SI3056WriteRegister(45, 0x7F);
-	SI3056WriteRegister(46, 0x7F);
-	SI3056WriteRegister(47, 0x7F);
-	SI3056WriteRegister(48, 0x7F);
-	SI3056WriteRegister(49, 0x7F);
-	SI3056WriteRegister(50, 0x7F);
-	SI3056WriteRegister(51, 0x7F);
-	SI3056WriteRegister(52, 0x7F);
+	
+	//SI3056WriteRegister(16, ACT | IIRE);
+	
+	//SI3056WriteRegister(15, 0x70);
+	
+	
+	SI3056WriteRegister(45, 0xFF);
+  	SI3056WriteRegister(46, 0xf7);
+  	SI3056WriteRegister(47, 0xff);
+  	SI3056WriteRegister(48, 0x04);
+  	SI3056WriteRegister(49, 0xfd);
+   	SI3056WriteRegister(50, 0x02);
+   	SI3056WriteRegister(51, 0x00);
+   	SI3056WriteRegister(52, 0x00);
 	
 	//PrintDebug("\nReading Si3056 Registers");
+	
 	SetResetIO(GPIOE, SI_OFHK, enmReset);		//Go to OFF-HOOK
-	delay(500);
+	delay(400);
+	SI3056ReadRegister(45);
+	
 	for (i = 1 ; i < 60 ; i++){	
 		PrintDebug("\nSi3056 Register%02d: %02X", i ,SI3056ReadRegister(i));
 		delay(2);
@@ -299,8 +331,8 @@ int main(){
 	SetResetIO(GPIOE, SI_OFHK, enmSet);			//Go to ON-HOOK
 
 	
-	DmaConfig(DMA2_Stream0,(uint32)&SPI1 -> DR, (uint32)SItoSPMediaBuffer, 0, UDP_PACKET_SIZE/2);
-	DmaConfig(DMA2_Stream3,(uint32)&SPI1 -> DR, (uint32)SPtoSIMediaBuffer, 0, UDP_PACKET_SIZE/2);
+	//DmaConfig(DMA2_Stream0,(uint32)&SPI1 -> DR, (uint32)SItoSPMediaBuffer, 0, UDP_PACKET_SIZE/2);
+	//DmaConfig(DMA2_Stream3,(uint32)&SPI1 -> DR, (uint32)SPtoSIMediaBuffer, 0, UDP_PACKET_SIZE/2);
 	
 //	DmaEnable(DMA2_Stream0, True);															//Enable Si3056 to Smartphone Media Stream	  	(Peripheral to Memory)
 
@@ -320,9 +352,9 @@ int main(){
 		delay(1);
 	}*/
 
-	GPIOE -> MODER &= ~(3 << 22);
-	GPIOD -> ODR |= (1 << HT9032_PWRDOWN);
-
+	//GPIOE -> MODER &= ~(3 << 22);
+	//GPIOD -> ODR |= (1 << HT9032_PWRDOWN);
+	
  	while(1){
  		/*if ((Rx_Desc[0].Stat & 0x80000000) == 0){
 			for (i = 0 ; i < ((Rx_Desc[0].Stat >> 16) & 0x3FFF) ; i++)
@@ -348,8 +380,7 @@ int main(){
 		else{
 			GPIOD -> ODR &= ~(1 << 14);
 		}
-	
-
+		
 		
 // 		if (!(GPIOE -> IDR & (1 << 11)/*GPIOD -> IDR & (1 << HT9032_RING)*/)){
 // 			//delay(100);
@@ -381,10 +412,10 @@ int main(){
 			UdpRecieved = False;
 		}
 		
- 		if (DeviceState == enmOffHook) {
- 			SendVoiceToPhone();
- 			RecieveVoiceFromPhone();
- 		}
+ 		//if (DeviceState == enmOffHook) {
+ 			//SendVoiceToPhone();
+ 			//RecieveVoiceFromPhone();
+ 		//}
  			
 		/*if (DataReceivedFlag == True){
 			DataReceivedFlag = False;

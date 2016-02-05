@@ -14,6 +14,7 @@
 
 #pragma import(__use_no_semihosting_swi)
 
+void SER_PutChar(unsigned char Data);
 
 //extern int  sendchar(int ch);  /* in Serial.c */
 //extern int  getkey(void);      /* in Serial.c */
@@ -31,7 +32,7 @@ FILE __stdin;
 int fputc(int ch, FILE *f) {
 	SER_PutChar((unsigned char)ch);
 	//send_data((unsigned char)ch);
-//	return (sendchar(ch));
+	return (ch);
 }
 
 int fgetc(FILE *f) {

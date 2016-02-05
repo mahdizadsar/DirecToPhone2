@@ -10,6 +10,8 @@
 #ifndef __TYPES__
 #define __TYPES__
 
+typedef	 signed short int				int16;
+
 typedef  unsigned int 					uint32;
 typedef  unsigned short int				uint16;
 typedef  unsigned char	 				uint8;

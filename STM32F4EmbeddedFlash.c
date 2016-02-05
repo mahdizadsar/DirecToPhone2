@@ -72,7 +72,7 @@ boolean FlashWrite(uint32 *Data, uint32 *Address, uint32 Size){
 
 /******************************************************************************************************/
 
-boolean FlashSectoreErase(SectorNumber){
+boolean FlashSectoreErase(uint8 SectorNumber){
 	while(FLASH -> SR & FLASH_SR_BSY);
 	FLASH -> CR |= FLASH_CR_SER | ((SectorNumber << 3) & FLASH_CR_SNB);
 	FLASH -> CR |= FLASH_CR_STRT;
@@ -97,5 +97,5 @@ boolean FlashMassErase(void){
 /******************************************************************************************************/
 
 boolean ReadProtection(uint8 Level){
-	
+	return 0;
 }

@@ -31,9 +31,12 @@ uint8 			SampleCounter = 0;
 uint16			RxCounter = 0;
 uint16			TxCounter = 0;
 
+
+// Temp
 uint8 			Record = 0;
-uint32 IntCtr = 0;
-uint32 TxCtr = 0;
+uint32 			IntCtr = 0;
+uint32 			TxCtr = 0;
+uint8 			RxIP[]={192,168,1,4};
 
 uint32 Jcounter = 0;
 
@@ -60,6 +63,8 @@ extern SpRecord_ft			SpRecordFlash[20];
 
 extern int16				Tone1KHz[];
 extern uint8 BufFlag;
+
+extern int16 CounterDtm;
 
 /******************************************************************************************************/
 //Functions
@@ -299,7 +304,7 @@ void OffHook(void){
 	DeviceState = enmOffHook;
 	MediaStream(MEDIA_START);
 	NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-	
+	CounterDtm = 0;
 	
 	//NVIC_EnableIRQ(SPI1_IRQn);
 	//SPI1 -> CR2 |= SPI_CR2_RXNEIE; 
@@ -459,29 +464,31 @@ void CreationAccountRoutine(void){
 void CallRoutine(void){
 	uint16 CheckSum = 0;
 	uint8 i;	
-
-	ReplyPacket = (ReplyPacket_t*)udp_get_buf(ACK_REPLY_LEN + PACKET_OVERHEAD);
 	
-	(*ReplyPacket).ID = D2P_ID;
-	(*ReplyPacket).Command = ACK;
-	(*ReplyPacket).Len = ACK_REPLY_LEN;
-	
-	for (i = 0 ; i < ((*ReplyPacket).Len + PACKET_OVERHEAD - 2) ; i++)
-		CheckSum += ((uint8*)ReplyPacket)[i];
-	
-	(*ReplyPacket).Data[0] = CheckSum;
-	(*ReplyPacket).Data[1] = CheckSum >> 8;
-	
-	udp_send(UdpCtrlSoc, ReceivePacket.IP, UDP_CTRL_PORT, (uint8*)ReplyPacket, PACKET_OVERHEAD);
-	
-	PrintDebug("\nCalling: ");
-	for (i = 0 ; i < ReceivePacket.Len ; i++)
-		PrintDebug("%d",ReceivePacket.Data[i]);
-	PrintDebug("...");
-	
-	OffHook();
-	SampleCounter = 0;
-	delay(200);
+		ReplyPacket = (ReplyPacket_t*)udp_get_buf(ACK_REPLY_LEN + PACKET_OVERHEAD);
+		
+		(*ReplyPacket).ID = D2P_ID;
+		(*ReplyPacket).Command = ACK;
+		(*ReplyPacket).Len = ACK_REPLY_LEN;
+		
+		for (i = 0 ; i < ((*ReplyPacket).Len + PACKET_OVERHEAD - 2) ; i++)
+			CheckSum += ((uint8*)ReplyPacket)[i];
+		
+		(*ReplyPacket).Data[0] = CheckSum;
+		(*ReplyPacket).Data[1] = CheckSum >> 8;
+		
+		udp_send(UdpCtrlSoc, ReceivePacket.IP, UDP_CTRL_PORT, (uint8*)ReplyPacket, PACKET_OVERHEAD);
+		
+		PrintDebug("\nCalling: ");
+		for (i = 0 ; i < ReceivePacket.Len ; i++)
+			PrintDebug("%d",ReceivePacket.Data[i]);
+		PrintDebug("...");
+			
+		OffHook();
+		
+		SampleCounter = 0;
+		delay(200);
+		
 	
 // 	for (i = 0 ; i < ReceivePacket.Len ; i++){
 // 		SendDtmfTone((uint16*)DtmfCode[ReceivePacket.Data[i]]);

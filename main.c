@@ -56,11 +56,13 @@ int16				Tone1KHz[16] = {0 ,12540,23170,30274,32767,30274,23170,12540,0,-12540,-
 
 uint32 Tcounter = 0;
 uint8 BufFlag;
+uint16 CounterDtm = 0;
 /******************************************************************************************************/
 //External Variables
 extern uint8 				DtmfCode[10][1600];
 extern LOCALM 				localm[];
 extern uint32 TxCtr;
+extern uint8 DtmfCode[10][1600];
 
 /******************************************************************************************************/
 
@@ -91,7 +93,9 @@ U16 UdpMediaCallback (U8 socket, U8 *remip, U16 remport, U8 *buf, U16 len) {
 	}*/
 	
 	for(x = 0 ; x < 128 ; x++)
-		SPtoSIMediaBuffer[x] = buf[x];
+		SPtoSIMediaBuffer[x] = ((uint16*)DtmfCode)[CounterDtm++];
+		if (CounterDtm > 4000)
+			CounterDtm = 0;
 	//	SPtoSIMediaBuffer[i] = i;
 	
 	//memcpy(SPtoSIMediaBuffer,buf,len);
@@ -112,8 +116,10 @@ U16 UdpMediaCallback (U8 socket, U8 *remip, U16 remport, U8 *buf, U16 len) {
 /******************************************************************************************************/
 
 void delay (uint32 time){
-	uint32 i;	
-	for (i = 0 ; i < time * 0x20000 ; i++);
+	uint32 Ctr;	
+	uint32 Val;
+	Val = time * 0x20000;
+	for (Ctr = 0 ; Ctr < Val ; Ctr++);
 }
 
 /******************************************************************************************************/

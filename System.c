@@ -102,34 +102,64 @@ void SystemConfiguration(void){
 
 uint16 SI3056ReadRegister(uint8 RegisterNumber){
 	
-	uint16 DataInput;
+	uint16 DataInput[2];
+	uint16 DataOut[2];
+
 	
-	DataInput = SPI1 -> DR;
 	
- 	while (!(SPI1 -> SR & SPI_SR_RXNE) || (SPI1 -> SR & SPI_SR_BSY)); 		
- 	DataInput = SPI1 -> DR;
+#ifndef DMA_MODE_ENABLE	
+	DataOut[0] = 0x0001;
+	DataOut[1] = (0x8000 | (RegisterNumber << 8));
+	
+	DmaConfig(DMA2_Stream3,(uint32)&SPI1 -> DR, (uint32)DataOut, 0, 2);	
+	DmaConfig(DMA2_Stream0,(uint32)&SPI1 -> DR, (uint32)DataInput, 0, 2);
+
+	DmaEnable(DMA2_Stream3, True);
+	DmaEnable(DMA2_Stream0, True);
+
+
+	//while (!(SPI1 -> SR & SPI_SR_RXNE) || (SPI1 -> SR & SPI_SR_BSY));
+	//DataInput = SPI1 -> DR;
+	
+#else
+	
+	DataInput[1] = SPI1 -> DR;
+ 	
+	while (!(SPI1 -> SR & SPI_SR_RXNE) || (SPI1 -> SR & SPI_SR_BSY)); 		
+ 	DataInput[1] = SPI1 -> DR;
 	
 	while (!(SPI1 -> SR & SPI_SR_TXE) || (SPI1 -> SR & SPI_SR_BSY));
 	SPI1 -> DR = 0x0001;
 	
 	while (!(SPI1 -> SR & SPI_SR_RXNE) || (SPI1 -> SR & SPI_SR_BSY));
-	DataInput = SPI1 -> DR;
+	DataInput[1] = SPI1 -> DR;
 	
 	while (!(SPI1 -> SR & SPI_SR_TXE) || (SPI1 -> SR & SPI_SR_BSY));
 	SPI1 -> DR = (0x8000 | (RegisterNumber << 8));
 	
 	while (!(SPI1 -> SR & SPI_SR_RXNE) || (SPI1 -> SR & SPI_SR_BSY));	
-	DataInput = SPI1 -> DR;
+	DataInput[1] = SPI1 -> DR;	
+#endif
 	
-	return (DataInput);
+	return (DataInput[1]);
 }
 
 /******************************************************************************************************/
 
 void SI3056WriteRegister(uint8 RegisterNumber, uint8 Value){
 	
-	uint16 DataInput;
-
+	uint16 DataOut[2];
+	
+#ifdef DMA_MODE_ENABLE
+	
+	DataOut[0] = 0x0001;
+	DataOut[1] = (0x7FFF & ((RegisterNumber << 8) | Value));
+	
+	DmaConfig(DMA2_Stream3,(uint32)&SPI1 -> DR, (uint32)DataOut, 0, 2);	
+	DmaEnable(DMA2_Stream3, True);
+	
+#else	
+	
 	//while (!(SPI1 -> SR & SPI_SR_RXNE));
 	//DataInput = SPI1 -> DR;
 	
@@ -142,6 +172,7 @@ void SI3056WriteRegister(uint8 RegisterNumber, uint8 Value){
 	while (!(SPI1 -> SR & SPI_SR_TXE) || (SPI1 -> SR & SPI_SR_BSY));
 	SPI1 -> DR = (0x7FFF & ((RegisterNumber << 8) | Value));
 	
+#endif	
 }
 
 /******************************************************************************************************/
@@ -158,7 +189,7 @@ void SendVoiceToPhone(void){
 			BufferPtr = udp_get_buf (128);
 			memcpy(BufferPtr,SItoSPMediaBuffer,128);
 			UdpCounter = 0;
-			udp_send (UdpMediaSoc, ReceivePacket.IP, UDP_MEDIA_PORT, BufferPtr, 128);
+			udp_send (UdpMediaSoc, ReceivePacket.IP, UDP_UP_MEDIA_PORT, BufferPtr, 128);
 		}
 	}
 }
@@ -173,7 +204,7 @@ void RecieveVoiceFromPhone(void){
 		
 	//	UdpMediaRecieved = False;
 	
-	
+/*	
 	
 		if (UdpMediaRecieved == True){
 		
@@ -192,7 +223,7 @@ void RecieveVoiceFromPhone(void){
 					BufferPtr = udp_get_buf (128);
 					memcpy(BufferPtr,SItoSPMediaBuffer,128);
 					UdpCounter = 0;
-					udp_send (UdpMediaSoc, ReceivePacket.IP, UDP_MEDIA_PORT, BufferPtr, 128);
+					udp_send (UdpMediaSoc, ReceivePacket.IP, UDP_UP_MEDIA_PORT, BufferPtr, 128);
 				}
 			}
 			
@@ -204,7 +235,7 @@ void RecieveVoiceFromPhone(void){
 					UdpMediaRecieved = False;
 					i = 0;
 				}
-				
+	 			
 				
 				//if (Record == 1 && TxCounter < 24000)	TxValue[TxCounter++] = ((uint16*)SPtoSIMediaBuffer)[i];
 			}
@@ -212,14 +243,14 @@ void RecieveVoiceFromPhone(void){
 		//}
 	}
 	
-	
-	
-//		for (i = 0 ; i < 64 ; i++){
-/*			
+	*/
+	if (UdpMediaRecieved == True){
+		for (i = 0 ; i < 64 ; i++){
+			
 			if(SPI1 -> SR & SPI_SR_RXNE){
 				Temp = SPI1 -> DR;
 				
-				if (Record == 1 && RxCounter < 24000)	RxValue[RxCounter++] = Temp;
+//				if (Record == 1 && RxCounter < 24000)	RxValue[RxCounter++] = Temp;
 				
 					
 				SItoSPMediaBuffer[UdpCounter++] = ((uint8*)&Temp)[0]; 
@@ -229,30 +260,26 @@ void RecieveVoiceFromPhone(void){
 					BufferPtr = udp_get_buf (128);
 					memcpy(BufferPtr,SItoSPMediaBuffer,128);
 					UdpCounter = 0;
-					udp_send (UdpMediaSoc, ReceivePacket.IP, UDP_MEDIA_PORT, BufferPtr, 128);
+					udp_send (UdpMediaSoc, ReceivePacket.IP, UDP_UP_MEDIA_PORT, BufferPtr, 128);
 				}
 			}
 			
-			//while (!(SPI1 -> SR & SPI_SR_TXE));
-			if (UdpMediaRecieved == True){
-				if ((SPI1 -> SR & SPI_SR_TXE))
-				{	
+			while (!(SPI1 -> SR & SPI_SR_TXE));
 					
-					if (Record == 1 && TxCounter < 24000)	TxValue[TxCounter++] = Tone1KHz[SampleCounter];
+//			if (Record == 1 && TxCounter < 24000)	TxValue[TxCounter++] = Tone1KHz[SampleCounter];
 					
-					SPI1 -> DR = ((uint16*)SPtoSIMediaBuffer)[SampleCounter] & 0xFFFE; //Tone1KHz[SampleCounter]
-					//if (SampleCounter++ == 16)
-					
-					SampleCounter++;
-					
-					if (SampleCounter == 64) {
-						UdpMediaRecieved = False;
-						SampleCounter = 0;
-					}
-				}
+			SPI1 -> DR = ((uint16*)SPtoSIMediaBuffer)[SampleCounter] & 0xFFFE; //Tone1KHz[SampleCounter]
+			//if (SampleCounter++ == 16)
+			
+			SampleCounter++;
+			
+			if (SampleCounter == 64) {
+				UdpMediaRecieved = False;
+				SampleCounter = 0;
+
 			}
-*/
-	//}
+		}
+	}
 }
 
 /******************************************************************************************************/
@@ -302,8 +329,13 @@ void OffHook(void){
 	uint32 x;
 	SetResetIO(GPIOE, SI_OFHK, enmReset);		//Go to OFF-HOOK
 	DeviceState = enmOffHook;
+	
+#ifdef DMA_MODE_ENABLE
+	
 	MediaStream(MEDIA_START);
 	NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+	
+#endif	
 	CounterDtm = 0;
 	
 	//NVIC_EnableIRQ(SPI1_IRQn);
@@ -322,11 +354,16 @@ void OnHook(void){
 	//x = SPI1 -> SR;
 	//NVIC_DisableIRQ(SPI1_IRQn);
 	//SPI1 -> CR2 = 0;
-	//UdpMediaRecieved = False;
+	UdpMediaRecieved = False;
+	
+#ifdef DMA_MODE_ENABLE
+	
 	NVIC_DisableIRQ(DMA2_Stream0_IRQn);
 	NVIC_DisableIRQ(DMA2_Stream3_IRQn);
 	
 	MediaStream(MEDIA_STOP);
+	
+#endif
 }
 
 /******************************************************************************************************/
@@ -490,10 +527,10 @@ void CallRoutine(void){
 		delay(200);
 		
 	
-// 	for (i = 0 ; i < ReceivePacket.Len ; i++){
-// 		SendDtmfTone((uint16*)DtmfCode[ReceivePacket.Data[i]]);
-// 		delay(22);
-// 	}
+ 	for (i = 0 ; i < ReceivePacket.Len ; i++){
+ 		SendDtmfTone((uint16*)DtmfCode[ReceivePacket.Data[i]]);
+ 		delay(22);
+ 	}
 }
 
 /******************************************************************************************************/
@@ -560,10 +597,12 @@ void DMA2_Stream0_IRQHandler(void){
 	{
 		BufferPtr = udp_get_buf (UDP_PACKET_SIZE);
 		memcpy(BufferPtr,SItoSPMediaBuffer,UDP_PACKET_SIZE);
-		udp_send (UdpMediaSoc, ReceivePacket.IP, UDP_MEDIA_PORT, BufferPtr, UDP_PACKET_SIZE);
+		udp_send (UdpMediaSoc, ReceivePacket.IP, UDP_UP_MEDIA_PORT, BufferPtr, UDP_PACKET_SIZE);
 		DmaEnable(DMA2_Stream0, True);															//Enable Si3056 to Smartphone Media Stream	  	(Peripheral to Memory)
 	}
 }
+
+/******************************************************************************************************/
 
 //Interrupt SPI1 TX and RX
 void SPI1_IRQHandler(void){

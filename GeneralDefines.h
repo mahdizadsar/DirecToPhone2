@@ -95,11 +95,16 @@ typedef struct {
 }ReceivePacket_t;
 
 /******************************************************************************************************/
+
+#define DMA_MODE_ENABLE
+
+
 //General Defines
 #define SPS_RECORD_SECTOR			3
 #define SPS_RECORD_ADDRESS			(0x8000000 + 0xC000)
 //Ports
-#define UDP_MEDIA_PORT				8000
+#define UDP_MEDIA_PORT				9000
+#define UDP_UP_MEDIA_PORT			8000
 #define UDP_CTRL_PORT				5060
 
 //Commands
@@ -153,6 +158,8 @@ typedef struct {
 #define DOUT						9
 #define HT9032_PWRDOWN				10
 #define HT9032_RING					11
+
+
 
 
 /******************************************************************************************************/

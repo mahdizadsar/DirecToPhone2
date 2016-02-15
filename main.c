@@ -24,6 +24,7 @@ extern void SI3056WriteRegister(uint8 ,uint8 );
 #define NUM_TX_BUF          2           /* 0x0600 for Tx (2*1536=3K)         */
 #define ETH_BUF_SIZE        1536        /* ETH Receive/Transmit buffer size  */
 
+
 /******************************************************************************************************/
 //Global Variables
 uint8 				UdpCtrlSoc;				//UDP Signaling Handler
@@ -92,17 +93,21 @@ U16 UdpMediaCallback (U8 socket, U8 *remip, U16 remport, U8 *buf, U16 len) {
 		BufFlag = 0;
 	}*/
 	
-	for(x = 0 ; x < 128 ; x++)
+	/*for(x = 0 ; x < 128 ; x++)
 		SPtoSIMediaBuffer[x] = ((uint16*)DtmfCode)[CounterDtm++];
 		if (CounterDtm > 4000)
-			CounterDtm = 0;
+			CounterDtm = 0;*/
 	//	SPtoSIMediaBuffer[i] = i;
 	
-	//memcpy(SPtoSIMediaBuffer,buf,len);
+	memcpy(SPtoSIMediaBuffer,buf,len);
+		UdpMediaRecieved = True;
+	
+#ifdef DMA_MODE_ENABLE	
 	
 	if (DeviceState == enmOffHook)	 		
 		DmaEnable(DMA2_Stream3, True);														//Enable Smartphone to Si3056 Media Stream Again (Memory to Peripheral)
-	
+
+#endif	
 	
 	/*if (UdpMediaRecieved == False){
 		//SPI1 -> CR2 |= SPI_CR2_TXEIE;
@@ -307,8 +312,9 @@ int main(){
 	SI3056WriteRegister(20, 0xFF);
 	SI3056WriteRegister(21, 0xFF);
 	SI3056WriteRegister(5, 0x02);
-	SI3056WriteRegister(7, 0x09);				//Set Codec to 16Kbps
-	
+//	SI3056WriteRegister(7, 0x09);				//Set Codec to 16Kbps
+	SI3056WriteRegister(7, 0x01);				//Set Codec to 8Kbps
+
 	
 	//SI3056WriteRegister(16, ACT | IIRE);
 	//SI3056WriteRegister(15, 0x70);
@@ -416,11 +422,15 @@ int main(){
 			UdpRecieved = False;
 		}
 		
- 		//if (DeviceState == enmOffHook) {
- 			//SendVoiceToPhone();
- 			//RecieveVoiceFromPhone();
- 		//}
- 			
+#ifndef DMA_MODE_ENABLE
+		
+ 		if (DeviceState == enmOffHook) {
+ 			SendVoiceToPhone();
+ 			RecieveVoiceFromPhone();
+ 		}
+		
+#endif
+		
 		/*if (DataReceivedFlag == True){
 			DataReceivedFlag = False;
 			switch(TCPRxDataPtr[0]){
